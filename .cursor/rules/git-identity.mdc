@@ -1,0 +1,19 @@
+---
+description: Git commit author identity for Sthir
+alwaysApply: true
+---
+
+# Git identity
+
+All commits in this repo must use:
+
+- **Name:** Shivam Jha
+- **Email:** shivamjha190@gmail.com
+
+When creating commits (including via agent), use:
+
+```bash
+git commit --author="Shivam Jha <shivamjha190@gmail.com>" -m "..."
+```
+
+Do not use other emails (e.g. work addresses).

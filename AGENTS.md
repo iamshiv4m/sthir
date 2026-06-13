@@ -8,6 +8,15 @@ Frontend-only repo for **Sthir**. Backend: `../sthir-api` (NestJS).
 
 **This repo:** marketing pages, intake/waitlist forms, admin UI, tracker UI. All data via API.
 
+## Git
+
+All commits: **Shivam Jha** `<shivamjha190@gmail.com>`. Set locally:
+
+```bash
+git config user.name "Shivam Jha"
+git config user.email "shivamjha190@gmail.com"
+```
+
 ## Stack
 
 - **Next.js 16** App Router, React 19, TypeScript
