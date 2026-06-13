@@ -1,6 +1,12 @@
 import { LegalPage } from "@/components/legal-page";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Training Disclaimer — Sthir" };
+export const metadata: Metadata = pageMetadata({
+  title: "Training Disclaimer",
+  description: "Medical and competition disclaimers for Sthir coach-reviewed training programs.",
+  path: "/legal/disclaimer",
+});
 
 export default function DisclaimerPage() {
   return (

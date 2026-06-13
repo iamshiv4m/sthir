@@ -1,6 +1,12 @@
 import { LegalPage } from "@/components/legal-page";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Refund Policy — Sthir" };
+export const metadata: Metadata = pageMetadata({
+  title: "Refund Policy",
+  description: "Sthir refund and revision policy — 12-hour SLA, wrong goal/federation guarantees.",
+  path: "/legal/refund",
+});
 
 export default function RefundPage() {
   return (

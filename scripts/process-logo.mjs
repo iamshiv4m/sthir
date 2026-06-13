@@ -108,20 +108,35 @@ await trimmed
 
 await trimmed.clone().toFile(join(brandDir, "sthir-logo.png"));
 
-// OG: dark canvas + centered logo
-const ogSize = 1200;
-const logoForOg = await trimmed.clone().resize(900).png().toBuffer();
-await sharp({
-  create: {
-    width: ogSize,
-    height: ogSize,
-    channels: 4,
-    background: { r: 10, g: 10, b: 12, alpha: 1 },
-  },
-})
-  .composite([{ input: logoForOg, gravity: "center" }])
-  .png()
-  .toFile(join(brandDir, "sthir-og.png"));
+// OG: 1200×630 social card (logo + tagline)
+const ogW = 1200;
+const ogH = 630;
+const logoForOg = await trimmed.clone().resize(480, 480, { fit: "inside" }).png().toBuffer();
+const logoMeta = await sharp(logoForOg).metadata();
+const logoLeft = Math.floor((ogW - (logoMeta.width ?? 480)) / 2);
+const logoTop = Math.floor((ogH - (logoMeta.height ?? 480)) / 2) - 50;
+
+const ogTextSvg = Buffer.from(`<svg width="${ogW}" height="${ogH}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0a0a0c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="#0a0a0c"/>
+  <rect width="100%" height="100%" fill="url(#glow)"/>
+  <text x="600" y="520" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="34" font-weight="700" fill="#e8b84a">Strength · Focus · Progress</text>
+  <text x="600" y="565" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="22" fill="#9ca3af">Coach-reviewed programs for India · sthir.in</text>
+</svg>`);
+
+async function writeOgImage(outPath) {
+  await sharp(ogTextSvg)
+    .composite([{ input: logoForOg, left: logoLeft, top: logoTop }])
+    .png()
+    .toFile(outPath);
+}
+
+await writeOgImage(join(brandDir, "sthir-og.png"));
 
 // App icons from mark
 const markBuf = await sharp(join(brandDir, "sthir-logo-mark.png")).resize(512).png().toBuffer();
@@ -129,6 +144,7 @@ const appDir = join(__dirname, "../src/app");
 await sharp(markBuf).toFile(join(appDir, "icon.png"));
 await sharp(markBuf).toFile(join(appDir, "apple-icon.png"));
 await sharp(join(brandDir, "sthir-og.png")).toFile(join(appDir, "opengraph-image.png"));
+await sharp(join(brandDir, "sthir-og.png")).toFile(join(appDir, "twitter-image.png"));
 
 // Browsers still request /favicon.ico first — keep in sync with mark
 await sharp(markBuf)

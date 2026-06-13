@@ -14,11 +14,15 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { SthirLogo } from "@/components/brand/sthir-logo";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "Sthir Design System — Designer Review",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Design System",
+  description: "Internal UI kit for Sthir designer review.",
+  path: "/design-system",
+  noIndex: true,
+});
 
 const swatches = [
   { name: "Primary (amber)", token: "bg-primary", text: "text-primary-foreground" },

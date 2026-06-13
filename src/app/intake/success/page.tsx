@@ -4,7 +4,16 @@ import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SLA_HOURS } from "@/lib/constants";
+import { pageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Program Confirmed",
+  description: "Your Sthir program is in the coach review queue.",
+  path: "/intake/success",
+  noIndex: true,
+});
 
 const timeline = [
   {

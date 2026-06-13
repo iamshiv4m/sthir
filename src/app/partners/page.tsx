@@ -1,6 +1,15 @@
 import { apiUrl } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Gym & Warehouse Partners",
+  description:
+    "Partner with Sthir — refer athletes with your code and earn on every paid program.",
+  path: "/partners",
+});
 
 type Partner = {
   id: string;

@@ -1,6 +1,12 @@
 import { LegalPage } from "@/components/legal-page";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Privacy Policy — Sthir" };
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy Policy",
+  description: "How Sthir collects, uses, and protects your training data under India's DPDP Act.",
+  path: "/legal/privacy",
+});
 
 export default function PrivacyPage() {
   return (
