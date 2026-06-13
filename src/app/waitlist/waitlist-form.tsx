@@ -1,0 +1,206 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2 } from "lucide-react";
+import { apiUrl } from "@/lib/api";
+import { GOALS } from "@/lib/constants";
+import { goalLabel } from "@/lib/labels";
+import { FormField, NativeSelect } from "@/components/form-field";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+
+export default function WaitlistForm() {
+  const params = useSearchParams();
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    city: "",
+    goal: params.get("goal") ?? "first_meet",
+    referralCode: params.get("ref") ?? "",
+    payDeposit: true,
+  });
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [result, setResult] = useState<{ id: string; orderId: string; mock?: boolean } | null>(
+    null,
+  );
+  const [message, setMessage] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    try {
+      const res = await fetch(apiUrl("/waitlist"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      setStatus("done");
+      setResult({ id: data.id, orderId: data.orderId, mock: data.mock });
+      setMessage(
+        data.mock
+          ? "Spot reserved (dev mode). In production you'd complete ₹99 payment via Razorpay."
+          : "Complete your ₹99 deposit to lock founding pricing.",
+      );
+    } catch (err) {
+      setStatus("error");
+      setMessage(err instanceof Error ? err.message : "Something went wrong");
+    }
+  }
+
+  if (status === "done" && result) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-16">
+        <div className="text-center">
+          <CheckCircle2 className="mx-auto size-14 text-primary" />
+          <h1 className="mt-4 text-3xl font-bold">You&apos;re on the list!</h1>
+          <p className="mt-3 text-muted-foreground">{message}</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Badge variant="secondary" className="font-mono">
+              #{result.id.slice(0, 6).toUpperCase()}
+            </Badge>
+            {result.orderId && (
+              <Badge variant="outline" className="font-mono">
+                Order: {result.orderId.slice(0, 8)}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <Card className="mt-10">
+          <CardHeader>
+            <CardTitle className="text-lg">What happens next</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div className="flex gap-3">
+              <span className="font-semibold text-primary">1.</span>
+              <p>
+                <strong>Deposit confirmed</strong> — your ₹99 is fully refundable until you buy a
+                program.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <span className="font-semibold text-primary">2.</span>
+              <p>
+                <strong>Founding pricing locked</strong> — you get first access at ₹499 when we
+                open intake slots.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <span className="font-semibold text-primary">3.</span>
+              <p>
+                <strong>We email you</strong> when your cohort opens. No spam — just launch updates
+                for {goalLabel(form.goal)} athletes.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Link href="/intake" className={cn(buttonVariants(), "text-center")}>
+            Skip the wait — get program now
+          </Link>
+          <Link href="/" className={cn(buttonVariants({ variant: "outline" }), "text-center")}>
+            Back to home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-lg px-4 py-16">
+      <div className="relative overflow-hidden rounded-2xl border border-border/80">
+        <div className="hero-glow pointer-events-none absolute inset-0 opacity-40" />
+        <Card className="relative border-0 bg-card/80 shadow-none">
+          <CardHeader>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Waitlist</p>
+            <CardTitle className="text-2xl">Join the Founding Lifters</CardTitle>
+            <CardDescription>
+              ₹99 refundable deposit secures your spot. Target: first 50 athletes.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <form onSubmit={submit} className="mt-6 space-y-4">
+        <FormField label="Name">
+          <Input
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+        </FormField>
+        <FormField label="Email">
+          <Input
+            required
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </FormField>
+        <FormField label="City">
+          <Input
+            placeholder="Delhi, Mumbai, Bangalore..."
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+          />
+        </FormField>
+        <FormField label="Primary goal">
+          <NativeSelect
+            value={form.goal}
+            onChange={(e) => setForm({ ...form, goal: e.target.value })}
+          >
+            {GOALS.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.label}
+              </option>
+            ))}
+          </NativeSelect>
+        </FormField>
+        <FormField label="Referral code (optional)">
+          <Input
+            value={form.referralCode}
+            onChange={(e) => setForm({ ...form, referralCode: e.target.value })}
+          />
+        </FormField>
+        <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+          <Checkbox
+            id="deposit"
+            checked={form.payDeposit}
+            onCheckedChange={(checked) => setForm({ ...form, payDeposit: checked === true })}
+          />
+          <Label htmlFor="deposit" className="text-sm text-muted-foreground">
+            Pay ₹99 refundable deposit now
+          </Label>
+        </div>
+        <Button type="submit" className="w-full" size="lg" disabled={status === "loading"}>
+          {status === "loading" ? "Submitting..." : "Join Waitlist"}
+        </Button>
+      </form>
+
+      {message && status === "error" && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      )}
+
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        Deposit fully refundable per our{" "}
+        <Link href="/legal/refund" className="text-primary hover:underline">
+          refund policy
+        </Link>
+        .
+      </p>
+    </div>
+  );
+}
