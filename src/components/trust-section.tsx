@@ -1,25 +1,25 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Layers, UserCheck } from "lucide-react";
-import { SLA_HOURS } from "@/lib/constants";
-import { Reveal } from "@/components/landing/reveal";
-import { SectionHeader } from "@/components/landing/section-header";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Clock, Layers, UserCheck } from 'lucide-react';
+import { SLA_HOURS } from '@/lib/constants';
+import { Reveal } from '@/components/landing/reveal';
+import { SectionHeader } from '@/components/landing/section-header';
 
 const proofPoints = [
   {
     icon: UserCheck,
-    title: "Human-reviewed",
-    desc: "Every program checked by a real coach before delivery — not auto-generated junk.",
+    title: 'Human-reviewed',
+    desc: 'Every program checked by a real coach before delivery — not auto-generated junk.',
   },
   {
     icon: Layers,
-    title: "Built for your goal",
-    desc: "Meet prep, strength blocks, powerbuilding, or general SBD — templates match what you picked.",
+    title: 'Built for your goal',
+    desc: 'Meet prep, strength blocks, powerbuilding, or general SBD — templates match what you picked.',
   },
   {
     icon: Clock,
     title: `${SLA_HOURS}-hour delivery`,
-    desc: "Pay → coach review → Google Sheet & PDF. Miss our SLA? Full refund.",
+    desc: 'Pay → coach review → Google Sheet & PDF. Miss our SLA? Full refund.',
   },
 ];
 
@@ -44,7 +44,9 @@ export function TrustSection() {
                     <item.icon className="size-5 text-primary" />
                   </div>
                   <h3 className="font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.desc}
+                  </p>
                 </CardContent>
               </Card>
             </Reveal>
@@ -58,13 +60,19 @@ export function TrustSection() {
                 S
               </div>
               <div>
-                <Badge variant="secondary" className="mb-2 border-primary/20 bg-primary/10 text-primary">
+                <Badge
+                  variant="secondary"
+                  className="mb-2 border-primary/20 bg-primary/10 text-primary"
+                >
                   Founding coach team
                 </Badge>
-                <p className="font-semibold">Reviewed by coaches who train in India</p>
+                <p className="font-semibold">
+                  Reviewed by coaches who train in India
+                </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  Powerlifting meets, strength blocks, and warehouse-gym athletes in Delhi, Mumbai
-                  & Bangalore. Adjusted for injuries and weak points — not copy-pasted.
+                  Powerlifting meets, strength blocks, and warehouse-gym
+                  athletes in Delhi, Mumbai & Bangalore. Adjusted for injuries
+                  and weak points — not copy-pasted.
                 </p>
               </div>
             </CardContent>

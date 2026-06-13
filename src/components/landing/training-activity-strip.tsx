@@ -1,11 +1,31 @@
-import { Activity, CalendarDays, Dumbbell, Gauge, Weight } from "lucide-react";
+import { Activity, CalendarDays, Dumbbell, Gauge, Weight } from 'lucide-react';
 
 const METRICS = [
-  { icon: Weight, label: "Strength focus", value: "SBD + more", sub: "Goal-based blocks" },
-  { icon: Gauge, label: "Intensity", value: "RPE 7–9", sub: "Or %-based" },
-  { icon: CalendarDays, label: "Frequency", value: "4 days/wk", sub: "Flexible split" },
-  { icon: Activity, label: "Block length", value: "8–16 wks", sub: "Goal-aligned" },
-  { icon: Dumbbell, label: "Programs", value: "8 goals", sub: "PL · strength · recomp" },
+  {
+    icon: Weight,
+    label: 'Strength focus',
+    value: 'SBD + more',
+    sub: 'Goal-based blocks',
+  },
+  { icon: Gauge, label: 'Intensity', value: 'RPE 7–9', sub: 'Or %-based' },
+  {
+    icon: CalendarDays,
+    label: 'Frequency',
+    value: '4 days/wk',
+    sub: 'Flexible split',
+  },
+  {
+    icon: Activity,
+    label: 'Block length',
+    value: '8–16 wks',
+    sub: 'Goal-aligned',
+  },
+  {
+    icon: Dumbbell,
+    label: 'Programs',
+    value: '8 goals',
+    sub: 'PL · strength · recomp',
+  },
 ];
 
 export function TrainingActivityStrip() {
@@ -25,8 +45,12 @@ export function TrainingActivityStrip() {
                 <p className="truncate text-[0.65rem] uppercase tracking-wider text-muted-foreground">
                   {item.label}
                 </p>
-                <p className="truncate font-mono text-sm font-bold text-foreground">{item.value}</p>
-                <p className="truncate text-[0.65rem] text-muted-foreground">{item.sub}</p>
+                <p className="truncate font-mono text-sm font-bold text-foreground">
+                  {item.value}
+                </p>
+                <p className="truncate text-[0.65rem] text-muted-foreground">
+                  {item.sub}
+                </p>
               </div>
             </div>
           ))}

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export function Reveal({
   children,
@@ -26,7 +26,7 @@ export function Reveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.08, rootMargin: "0px 0px -32px 0px" },
+      { threshold: 0.08, rootMargin: '0px 0px -32px 0px' },
     );
 
     observer.observe(el);
@@ -37,8 +37,10 @@ export function Reveal({
     <div
       ref={ref}
       className={cn(
-        "motion-safe:transition-all motion-safe:duration-700 motion-safe:ease-out",
-        visible ? "motion-safe:translate-y-0 opacity-100" : "motion-safe:translate-y-8 opacity-0",
+        'motion-safe:transition-all motion-safe:duration-700 motion-safe:ease-out',
+        visible
+          ? 'motion-safe:translate-y-0 opacity-100'
+          : 'motion-safe:translate-y-8 opacity-0',
         className,
       )}
       style={{ transitionDelay: `${delay}ms` }}

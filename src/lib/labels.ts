@@ -5,7 +5,7 @@ import {
   GYM_TYPES,
   TRAINING_STYLES,
   type GoalId,
-} from "./constants";
+} from './constants';
 
 export function goalLabel(id: string): string {
   return GOALS.find((g) => g.id === id)?.label ?? id;
@@ -28,5 +28,7 @@ export function trainingStyleLabel(id: string): string {
 }
 
 export function isMeetFocusedGoal(goal: string): boolean {
-  return (["first_meet", "increase_total"] as GoalId[]).includes(goal as GoalId);
+  return (['first_meet', 'increase_total'] as GoalId[]).includes(
+    goal as GoalId,
+  );
 }

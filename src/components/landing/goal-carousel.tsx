@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function GoalCarousel({
   children,
@@ -33,19 +33,19 @@ export function GoalCarousel({
     if (!el) return;
 
     updateScroll();
-    el.addEventListener("scroll", updateScroll, { passive: true });
-    window.addEventListener("resize", updateScroll);
+    el.addEventListener('scroll', updateScroll, { passive: true });
+    window.addEventListener('resize', updateScroll);
 
     return () => {
-      el.removeEventListener("scroll", updateScroll);
-      window.removeEventListener("resize", updateScroll);
+      el.removeEventListener('scroll', updateScroll);
+      window.removeEventListener('resize', updateScroll);
     };
   }, [updateScroll]);
 
-  function scrollBy(direction: "left" | "right") {
+  function scrollBy(direction: 'left' | 'right') {
     scrollRef.current?.scrollBy({
-      left: direction === "left" ? -280 : 280,
-      behavior: "smooth",
+      left: direction === 'left' ? -280 : 280,
+      behavior: 'smooth',
     });
   }
 
@@ -55,13 +55,15 @@ export function GoalCarousel({
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <ChevronLeft className="size-3.5 shrink-0 text-primary/70" />
           <span>
-            Swipe to explore{" "}
-            <span className="font-medium text-foreground">{count} programs</span>
+            Swipe to explore{' '}
+            <span className="font-medium text-foreground">
+              {count} programs
+            </span>
           </span>
           <ChevronRight
             className={cn(
-              "size-3.5 shrink-0 text-primary",
-              canScrollRight && "motion-safe:animate-pulse",
+              'size-3.5 shrink-0 text-primary',
+              canScrollRight && 'motion-safe:animate-pulse',
             )}
           />
         </p>
@@ -70,7 +72,7 @@ export function GoalCarousel({
             type="button"
             aria-label="Scroll programs left"
             disabled={!canScrollLeft}
-            onClick={() => scrollBy("left")}
+            onClick={() => scrollBy('left')}
             className="flex size-11 items-center justify-center rounded-lg border border-border/70 bg-card/80 text-muted-foreground transition-colors enabled:hover:border-primary/40 enabled:hover:text-primary disabled:opacity-30"
           >
             <ChevronLeft className="size-4" />
@@ -79,7 +81,7 @@ export function GoalCarousel({
             type="button"
             aria-label="Scroll programs right"
             disabled={!canScrollRight}
-            onClick={() => scrollBy("right")}
+            onClick={() => scrollBy('right')}
             className="flex size-11 items-center justify-center rounded-lg border border-border/70 bg-card/80 text-muted-foreground transition-colors enabled:hover:border-primary/40 enabled:hover:text-primary disabled:opacity-30"
           >
             <ChevronRight className="size-4" />
@@ -90,15 +92,15 @@ export function GoalCarousel({
       <div className="relative sm:static">
         <div
           className={cn(
-            "pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent transition-opacity duration-300 sm:hidden",
-            canScrollLeft ? "opacity-100" : "opacity-0",
+            'pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent transition-opacity duration-300 sm:hidden',
+            canScrollLeft ? 'opacity-100' : 'opacity-0',
           )}
           aria-hidden
         />
         <div
           className={cn(
-            "pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-background via-background/90 to-transparent transition-opacity duration-300 sm:hidden",
-            canScrollRight ? "opacity-100" : "opacity-0",
+            'pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-background via-background/90 to-transparent transition-opacity duration-300 sm:hidden',
+            canScrollRight ? 'opacity-100' : 'opacity-0',
           )}
           aria-hidden
         />

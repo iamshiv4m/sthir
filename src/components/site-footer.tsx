@@ -1,16 +1,16 @@
-import Link from "next/link";
-import { SthirMark } from "@/components/brand/sthir-logo";
+import Link from 'next/link';
+import { SthirMark } from '@/components/brand/sthir-logo';
 
 const legalLinks = [
-  { href: "/legal/disclaimer", label: "Disclaimer" },
-  { href: "/legal/refund", label: "Refunds" },
-  { href: "/legal/privacy", label: "Privacy" },
+  { href: '/legal/disclaimer', label: 'Disclaimer' },
+  { href: '/legal/refund', label: 'Refunds' },
+  { href: '/legal/privacy', label: 'Privacy' },
 ];
 
 const platformLinks = [
-  { href: "/intake", label: "Get your block" },
-  { href: "/waitlist", label: "Waitlist" },
-  { href: "/partners", label: "Gym partners" },
+  { href: '/intake', label: 'Get your block' },
+  { href: '/waitlist', label: 'Waitlist' },
+  { href: '/partners', label: 'Gym partners' },
 ];
 
 function FooterLinkGroup({
@@ -22,7 +22,9 @@ function FooterLinkGroup({
 }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-foreground/80">{title}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-foreground/80">
+        {title}
+      </p>
       <ul className="mt-3 space-y-2.5">
         {links.map((link) => (
           <li key={link.href}>
@@ -40,14 +42,17 @@ function FooterLinkGroup({
 }
 
 export function SiteFooter() {
-  const showDesignSystem = process.env.NODE_ENV === "development";
+  const showDesignSystem = process.env.NODE_ENV === 'development';
 
   return (
     <footer className="border-t border-border/80 bg-background">
       <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12">
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="inline-flex items-center gap-3 transition-opacity hover:opacity-90">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 transition-opacity hover:opacity-90"
+            >
               <SthirMark height={44} />
               <span className="text-xl font-bold tracking-tight">
                 STHIR<span className="text-primary">.</span>
@@ -67,14 +72,19 @@ export function SiteFooter() {
             title="Platform"
             links={
               showDesignSystem
-                ? [...platformLinks, { href: "/design-system", label: "Design system" }]
+                ? [
+                    ...platformLinks,
+                    { href: '/design-system', label: 'Design system' },
+                  ]
                 : platformLinks
             }
           />
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Sthir — India Strength Sports Platform</p>
+          <p>
+            © {new Date().getFullYear()} Sthir — India Strength Sports Platform
+          </p>
           <p>Not medical advice. Train smart.</p>
         </div>
       </div>

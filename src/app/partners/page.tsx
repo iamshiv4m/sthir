@@ -1,14 +1,14 @@
-import { apiUrl } from "@/lib/api";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Metadata } from "next";
-import { pageMetadata } from "@/lib/seo";
+import { apiUrl } from '@/lib/api';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
-  title: "Gym & Warehouse Partners",
+  title: 'Gym & Warehouse Partners',
   description:
-    "Partner with Sthir — refer athletes with your code and earn on every paid program.",
-  path: "/partners",
+    'Partner with Sthir — refer athletes with your code and earn on every paid program.',
+  path: '/partners',
 });
 
 type Partner = {
@@ -23,7 +23,7 @@ type Partner = {
 
 async function getPartners(): Promise<Partner[]> {
   try {
-    const res = await fetch(apiUrl("/partners"), { next: { revalidate: 60 } });
+    const res = await fetch(apiUrl('/partners'), { next: { revalidate: 60 } });
     if (!res.ok) return [];
     const data = (await res.json()) as { partners: Partner[] };
     return data.partners;
@@ -32,10 +32,10 @@ async function getPartners(): Promise<Partner[]> {
   }
 }
 
-function statusVariant(status: string): "default" | "secondary" | "outline" {
-  if (status === "active") return "default";
-  if (status === "signed") return "secondary";
-  return "outline";
+function statusVariant(status: string): 'default' | 'secondary' | 'outline' {
+  if (status === 'active') return 'default';
+  if (status === 'signed') return 'secondary';
+  return 'outline';
 }
 
 export default async function PartnersPage() {
@@ -45,7 +45,8 @@ export default async function PartnersPage() {
     <div className="mx-auto max-w-4xl px-4 py-12">
       <h1 className="text-3xl font-bold">Gym & Warehouse Partners</h1>
       <p className="mt-2 text-muted-foreground">
-        Refer athletes with your code — ₹200 per paid program or 10th referral free team block
+        Refer athletes with your code — ₹200 per paid program or 10th referral
+        free team block
       </p>
 
       <div className="mt-10 space-y-4">
@@ -61,7 +62,9 @@ export default async function PartnersPage() {
               </div>
               <div className="text-right">
                 <Badge variant={statusVariant(p.status)}>{p.status}</Badge>
-                <p className="mt-2 text-sm text-muted-foreground">{p.referrals} referrals</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {p.referrals} referrals
+                </p>
               </div>
             </CardHeader>
           </Card>

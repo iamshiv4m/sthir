@@ -1,20 +1,22 @@
-import sharp from "sharp";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { readFileSync, copyFileSync } from "fs";
+import sharp from 'sharp';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const brandDir = join(__dirname, "../public/brand");
+const brandDir = join(__dirname, '../public/brand');
 
 // Restore from original JPEG source if needed
-const src = join(brandDir, "sthir-logo-source.jpg");
+const src = join(brandDir, 'sthir-logo-source.jpg');
 
 function isBg(r, g, b, threshold = 48) {
   return r <= threshold && g <= threshold && b <= threshold;
 }
 
 async function floodFillTransparent(inputPath) {
-  const { data, info } = await sharp(inputPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp(inputPath)
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
   const { width, height } = info;
   const out = Buffer.from(data);
   const alpha = new Uint8Array(width * height).fill(255);
@@ -60,7 +62,10 @@ async function floodFillTransparent(inputPath) {
 }
 
 async function trim(image) {
-  const { data, info } = await image.clone().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await image
+    .clone()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
   let minX = info.width;
   let minY = info.height;
   let maxX = 0;
@@ -93,30 +98,40 @@ const trimmed = await trim(base);
 const meta = await trimmed.metadata();
 
 const compactH = Math.floor(meta.height * 0.72);
-await trimmed.clone().toFile(join(brandDir, "sthir-logo-full.png"));
+await trimmed.clone().toFile(join(brandDir, 'sthir-logo-full.png'));
 await trimmed
   .clone()
   .extract({ left: 0, top: 0, width: meta.width, height: compactH })
-  .toFile(join(brandDir, "sthir-logo-compact.png"));
+  .toFile(join(brandDir, 'sthir-logo-compact.png'));
 
 const markSize = Math.min(meta.width, Math.floor(meta.height * 0.55));
 const markLeft = Math.floor((meta.width - markSize) / 2);
 await trimmed
   .clone()
-  .extract({ left: markLeft, top: 0, width: markSize, height: Math.floor(meta.height * 0.55) })
-  .toFile(join(brandDir, "sthir-logo-mark.png"));
+  .extract({
+    left: markLeft,
+    top: 0,
+    width: markSize,
+    height: Math.floor(meta.height * 0.55),
+  })
+  .toFile(join(brandDir, 'sthir-logo-mark.png'));
 
-await trimmed.clone().toFile(join(brandDir, "sthir-logo.png"));
+await trimmed.clone().toFile(join(brandDir, 'sthir-logo.png'));
 
 // OG: 1200×630 social card (logo + tagline)
 const ogW = 1200;
 const ogH = 630;
-const logoForOg = await trimmed.clone().resize(480, 480, { fit: "inside" }).png().toBuffer();
+const logoForOg = await trimmed
+  .clone()
+  .resize(480, 480, { fit: 'inside' })
+  .png()
+  .toBuffer();
 const logoMeta = await sharp(logoForOg).metadata();
 const logoLeft = Math.floor((ogW - (logoMeta.width ?? 480)) / 2);
 const logoTop = Math.floor((ogH - (logoMeta.height ?? 480)) / 2) - 50;
 
-const ogTextSvg = Buffer.from(`<svg width="${ogW}" height="${ogH}" xmlns="http://www.w3.org/2000/svg">
+const ogTextSvg =
+  Buffer.from(`<svg width="${ogW}" height="${ogH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="glow" cx="50%" cy="35%" r="55%">
       <stop offset="0%" stop-color="#d4a017" stop-opacity="0.18"/>
@@ -136,19 +151,29 @@ async function writeOgImage(outPath) {
     .toFile(outPath);
 }
 
-await writeOgImage(join(brandDir, "sthir-og.png"));
+await writeOgImage(join(brandDir, 'sthir-og.png'));
 
 // App icons from mark
-const markBuf = await sharp(join(brandDir, "sthir-logo-mark.png")).resize(512).png().toBuffer();
-const appDir = join(__dirname, "../src/app");
-await sharp(markBuf).toFile(join(appDir, "icon.png"));
-await sharp(markBuf).toFile(join(appDir, "apple-icon.png"));
-await sharp(join(brandDir, "sthir-og.png")).toFile(join(appDir, "opengraph-image.png"));
-await sharp(join(brandDir, "sthir-og.png")).toFile(join(appDir, "twitter-image.png"));
+const markBuf = await sharp(join(brandDir, 'sthir-logo-mark.png'))
+  .resize(512)
+  .png()
+  .toBuffer();
+const appDir = join(__dirname, '../src/app');
+await sharp(markBuf).toFile(join(appDir, 'icon.png'));
+await sharp(markBuf).toFile(join(appDir, 'apple-icon.png'));
+await sharp(join(brandDir, 'sthir-og.png')).toFile(
+  join(appDir, 'opengraph-image.png'),
+);
+await sharp(join(brandDir, 'sthir-og.png')).toFile(
+  join(appDir, 'twitter-image.png'),
+);
 
 // Browsers still request /favicon.ico first — keep in sync with mark
 await sharp(markBuf)
-  .resize(32, 32, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-  .toFile(join(appDir, "favicon.ico"));
+  .resize(32, 32, {
+    fit: 'contain',
+    background: { r: 0, g: 0, b: 0, alpha: 0 },
+  })
+  .toFile(join(appDir, 'favicon.ico'));
 
-console.log("Done", meta.width, meta.height);
+console.log('Done', meta.width, meta.height);

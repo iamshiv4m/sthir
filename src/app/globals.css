@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -138,9 +138,21 @@ body {
 /* Landing page atmosphere */
 .hero-glow {
   background:
-    radial-gradient(ellipse 80% 60% at 50% -10%, oklch(0.78 0.16 75 / 0.18), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 90% 20%, oklch(0.78 0.16 75 / 0.08), transparent 50%),
-    radial-gradient(ellipse 40% 30% at 10% 60%, oklch(0.78 0.16 75 / 0.06), transparent 45%);
+    radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      oklch(0.78 0.16 75 / 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 90% 20%,
+      oklch(0.78 0.16 75 / 0.08),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 40% 30% at 10% 60%,
+      oklch(0.78 0.16 75 / 0.06),
+      transparent 45%
+    );
 }
 
 @keyframes training-ticker {
@@ -177,7 +189,10 @@ body {
     linear-gradient(oklch(1 0 0 / 5%) 1px, transparent 1px),
     linear-gradient(90deg, oklch(1 0 0 / 5%) 1px, transparent 1px),
     linear-gradient(oklch(0.78 0.16 75 / 6%) 1px, transparent 1px);
-  background-size: 48px 48px, 48px 48px, 96px 96px;
+  background-size:
+    48px 48px,
+    48px 48px,
+    96px 96px;
   mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
 }
 

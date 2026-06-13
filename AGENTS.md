@@ -46,12 +46,12 @@ Backend logic → **`../sthir-api`**
 
 ## Common tasks
 
-| Task | Where |
-|------|-------|
+| Task                   | Where                                  |
+| ---------------------- | -------------------------------------- |
 | Add training goal (UI) | `constants.ts`, landing + intake forms |
-| New page | `src/app/` |
-| Pricing display | `pricing.ts`, `constants.ts` PRICING |
-| API / business logic | `../sthir-api` |
+| New page               | `src/app/`                             |
+| Pricing display        | `pricing.ts`, `constants.ts` PRICING   |
+| API / business logic   | `../sthir-api`                         |
 
 ## Scripts
 

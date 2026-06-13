@@ -6,11 +6,11 @@ Marketing site, intake funnel, admin UI, and tracker for **Sthir** — India's s
 
 ## Stack
 
-| Layer | Technology |
-|-------|------------|
+| Layer    | Technology                                                      |
+| -------- | --------------------------------------------------------------- |
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4, **shadcn/ui** |
-| Backend | **sthir-api** (NestJS) — not in this repo |
-| Hosting | Vercel (this repo) |
+| Backend  | **sthir-api** (NestJS) — not in this repo                       |
+| Hosting  | Vercel (this repo)                                              |
 
 ## Local setup
 
@@ -30,19 +30,19 @@ pnpm install && pnpm dev          # :3000
 
 ## Environment
 
-| Variable | Purpose |
-|----------|---------|
+| Variable              | Purpose                                         |
+| --------------------- | ----------------------------------------------- |
 | `NEXT_PUBLIC_API_URL` | Backend base URL (e.g. `http://localhost:4000`) |
-| `NEXT_PUBLIC_APP_URL` | This app's public URL |
+| `NEXT_PUBLIC_APP_URL` | This app's public URL                           |
 
 All payment, DB, and admin auth env vars live in **sthir-api**.
 
 ## Deploy
 
-| Repo | Platform | URL |
-|------|----------|-----|
-| **sthir** (this) | Vercel | `sthir.in` |
-| **sthir-api** | Railway / Render / Fly | `api.sthir.in` |
+| Repo             | Platform               | URL            |
+| ---------------- | ---------------------- | -------------- |
+| **sthir** (this) | Vercel                 | `sthir.in`     |
+| **sthir-api**    | Railway / Render / Fly | `api.sthir.in` |
 
 Set `NEXT_PUBLIC_API_URL=https://api.sthir.in` on Vercel.
 

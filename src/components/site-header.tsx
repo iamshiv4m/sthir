@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { SthirMark } from "@/components/brand/sthir-logo";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import Link from 'next/link';
+import { Menu, X } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { SthirMark } from '@/components/brand/sthir-logo';
+import { cn } from '@/lib/utils';
 
 const navLinks = [
-  { href: "/partners", label: "Gyms" },
-  { href: "/waitlist", label: "Waitlist" },
+  { href: '/partners', label: 'Gyms' },
+  { href: '/waitlist', label: 'Waitlist' },
 ];
 
 export function SiteHeader() {
@@ -34,24 +34,30 @@ export function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
+              className={buttonVariants({ variant: 'ghost', size: 'sm' })}
             >
               {link.label}
             </Link>
           ))}
-          <Link href="/intake" className={buttonVariants({ size: "sm" })}>
+          <Link href="/intake" className={buttonVariants({ size: 'sm' })}>
             Start Block
           </Link>
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Link href="/intake" className={cn(buttonVariants({ size: "sm" }), "h-11 min-w-[5.5rem] px-3 text-xs")}>
+          <Link
+            href="/intake"
+            className={cn(
+              buttonVariants({ size: 'sm' }),
+              'h-11 min-w-[5.5rem] px-3 text-xs',
+            )}
+          >
             Start Block
           </Link>
           <Button
             variant="ghost"
             size="icon"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? 'Close menu' : 'Open menu'}
             onClick={() => setOpen(!open)}
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
