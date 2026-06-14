@@ -7,7 +7,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { apiUrl } from '@/lib/api';
 import { GOALS } from '@/lib/constants';
 import { goalLabel } from '@/lib/labels';
-import { FormField, NativeSelect } from '@/components/form-field';
+import { FormField, FormSelect } from '@/components/form-field';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -221,16 +221,12 @@ export default function WaitlistForm() {
           />
         </FormField>
         <FormField label="Primary goal">
-          <NativeSelect
+          <FormSelect
             value={form.goal}
-            onChange={(e) => setForm({ ...form, goal: e.target.value })}
-          >
-            {GOALS.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.label}
-              </option>
-            ))}
-          </NativeSelect>
+            onValueChange={(goal) => setForm({ ...form, goal })}
+            options={GOALS.map((g) => ({ value: g.id, label: g.label }))}
+            placeholder="Choose your goal"
+          />
         </FormField>
         <FormField label="Referral code (optional)">
           <Input

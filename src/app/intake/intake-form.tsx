@@ -32,7 +32,7 @@ import {
   hasFoundingFreeSlots,
 } from '@/lib/founding';
 import type { GoalId } from '@/lib/constants';
-import { FormField, NativeSelect } from '@/components/form-field';
+import { FormField, FormSelect } from '@/components/form-field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -43,6 +43,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+
+const GENDER_OPTIONS = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'other', label: 'Other' },
+] as const;
 
 const STEPS = ['Goal', 'Profile', 'Lifts', 'Training', 'Health', 'Review'];
 
@@ -266,16 +272,12 @@ export default function IntakeForm() {
           {step === 0 && (
             <>
               <FormField label="Primary goal">
-                <NativeSelect
+                <FormSelect
                   value={form.goal}
-                  onChange={(e) => setForm({ ...form, goal: e.target.value })}
-                >
-                  {GOALS.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  onValueChange={(goal) => setForm({ ...form, goal })}
+                  options={GOALS.map((g) => ({ value: g.id, label: g.label }))}
+                  placeholder="Choose your goal"
+                />
               </FormField>
               <p className="text-sm font-medium text-primary">
                 Price: {formatInr(getPriceForGoal(form.goal as GoalId))}
@@ -324,16 +326,12 @@ export default function IntakeForm() {
                   />
                 </FormField>
                 <FormField label="Gender">
-                  <NativeSelect
+                  <FormSelect
                     value={form.gender}
-                    onChange={(e) =>
-                      setForm({ ...form, gender: e.target.value })
-                    }
-                  >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </NativeSelect>
+                    onValueChange={(gender) => setForm({ ...form, gender })}
+                    options={[...GENDER_OPTIONS]}
+                    placeholder="Select gender"
+                  />
                 </FormField>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -357,18 +355,17 @@ export default function IntakeForm() {
                 </FormField>
               </div>
               <FormField label="Federation">
-                <NativeSelect
+                <FormSelect
                   value={form.federation}
-                  onChange={(e) =>
-                    setForm({ ...form, federation: e.target.value })
+                  onValueChange={(federation) =>
+                    setForm({ ...form, federation })
                   }
-                >
-                  {FEDERATIONS.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  options={FEDERATIONS.map((f) => ({
+                    value: f.id,
+                    label: f.label,
+                  }))}
+                  placeholder="Select federation"
+                />
                 <p className="mt-1 text-xs text-muted-foreground">
                   Peaking and attempt selection differ between IPF/PI and WRPF —
                   pick the federation you plan to compete in.
@@ -412,18 +409,17 @@ export default function IntakeForm() {
                 Total: {form.squat1rm + form.bench1rm + form.deadlift1rm} kg
               </p>
               <FormField label="Experience">
-                <NativeSelect
+                <FormSelect
                   value={form.experience}
-                  onChange={(e) =>
-                    setForm({ ...form, experience: e.target.value })
+                  onValueChange={(experience) =>
+                    setForm({ ...form, experience })
                   }
-                >
-                  {EXPERIENCE_LEVELS.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  options={EXPERIENCE_LEVELS.map((e) => ({
+                    value: e.id,
+                    label: e.label,
+                  }))}
+                  placeholder="Select experience"
+                />
               </FormField>
             </>
           )}
@@ -442,32 +438,28 @@ export default function IntakeForm() {
                 />
               </FormField>
               <FormField label="Training style">
-                <NativeSelect
+                <FormSelect
                   value={form.trainingStyle}
-                  onChange={(e) =>
-                    setForm({ ...form, trainingStyle: e.target.value })
+                  onValueChange={(trainingStyle) =>
+                    setForm({ ...form, trainingStyle })
                   }
-                >
-                  {TRAINING_STYLES.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  options={TRAINING_STYLES.map((t) => ({
+                    value: t.id,
+                    label: t.label,
+                  }))}
+                  placeholder="Select training style"
+                />
               </FormField>
               <FormField label="Gym type">
-                <NativeSelect
+                <FormSelect
                   value={form.gymType}
-                  onChange={(e) =>
-                    setForm({ ...form, gymType: e.target.value })
-                  }
-                >
-                  {GYM_TYPES.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  onValueChange={(gymType) => setForm({ ...form, gymType })}
+                  options={GYM_TYPES.map((g) => ({
+                    value: g.id,
+                    label: g.label,
+                  }))}
+                  placeholder="Select gym type"
+                />
               </FormField>
               <FormField
                 label={meetFocused ? 'Meet date' : 'Meet date (optional)'}

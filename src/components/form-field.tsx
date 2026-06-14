@@ -1,4 +1,13 @@
+'use client';
+
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 export function FormField({
@@ -18,17 +27,46 @@ export function FormField({
   );
 }
 
-const selectClass =
-  'h-9 w-full rounded-lg border border-input bg-input/30 px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
+export type FormSelectOption = {
+  value: string;
+  label: string;
+};
 
-export function NativeSelect({
+export function FormSelect({
+  value,
+  onValueChange,
+  options,
+  placeholder = 'Select an option',
+  disabled,
   className,
-  children,
-  ...props
-}: React.ComponentProps<'select'>) {
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  options: FormSelectOption[];
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}) {
   return (
-    <select className={cn(selectClass, className)} {...props}>
-      {children}
-    </select>
+    <Select
+      value={value}
+      disabled={disabled}
+      onValueChange={(next) => {
+        if (next != null) onValueChange(String(next));
+      }}
+    >
+      <SelectTrigger
+        className={cn('w-full bg-input/30 dark:bg-input/30', className)}
+      >
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false} className="w-[var(--anchor-width)]">
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
