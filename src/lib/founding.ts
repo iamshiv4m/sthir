@@ -26,7 +26,11 @@ export const foundingCopy = {
   heroSub:
     'Powerlifting, strength & powerbuilding — personalized for Indian athletes. First 20 athletes get a free 4-week coach-reviewed Excel block. Longer programs coming soon.',
   primaryCta: 'Get free 4-week block',
-  secondaryCta: 'Reserve a spot',
+  /** Shown as text link when free spots remain — not a second equal CTA */
+  heroWaitlistLink: 'Not ready? Join waitlist',
+  heroWaitlistHint: 'Email updates only — no program until you apply',
+  /** Shown as outline button when free spots are full */
+  secondaryCta: 'Join waitlist for next cohort',
   intakeSubmit: 'Submit for review',
   intakeReviewLine: (hours: number) =>
     `Founding cohort — free 4-week block, no payment. Coach-reviewed Excel within ${hours} hours.`,

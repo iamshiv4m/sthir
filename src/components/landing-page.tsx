@@ -154,6 +154,10 @@ export function LandingPage() {
       : typeof marketCopy.pricingDescription === 'string'
         ? marketCopy.pricingDescription
         : '';
+  const canApplyFree =
+    foundingFree &&
+    (claimed == null || hasFoundingFreeSlots(claimed, target));
+  const showWaitlistAsButton = !foundingFree || cohortFull;
 
   useEffect(() => {
     const statsUrl = foundingFree
@@ -399,28 +403,51 @@ export function LandingPage() {
               Strength, powerbuilding, or meet prep — coach-reviewed and
               delivered in {SLA_HOURS} hours.
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div
+              className={cn(
+                'mt-8 flex flex-col items-center justify-center gap-3',
+                showWaitlistAsButton && 'sm:flex-row',
+              )}
+            >
               <Link
                 href="/intake"
                 className={cn(
                   buttonVariants({ size: 'lg' }),
                   'h-12 gap-2 px-8 text-base shadow-lg shadow-primary/20',
+                  !showWaitlistAsButton && 'w-full max-w-sm sm:w-auto',
                 )}
               >
                 {foundingFree
-                  ? 'Start free founding block'
+                  ? canApplyFree
+                    ? 'Get free 4-week block'
+                    : `Apply — ₹${FOUNDING_BLOCK_PRICE_INR}`
                   : 'Start training block'}
                 <ArrowRight className="size-4" />
               </Link>
-              <Link
-                href="/waitlist"
-                className={cn(
-                  buttonVariants({ variant: 'outline', size: 'lg' }),
-                  'h-12 px-8 text-base',
-                )}
-              >
-                {foundingFree ? 'Reserve a spot' : 'Join waitlist'}
-              </Link>
+              {showWaitlistAsButton ? (
+                <Link
+                  href="/waitlist"
+                  className={cn(
+                    buttonVariants({ variant: 'outline', size: 'lg' }),
+                    'h-12 px-8 text-base',
+                  )}
+                >
+                  {foundingFree
+                    ? marketCopy.secondaryCta
+                    : 'Join waitlist'}
+                </Link>
+              ) : (
+                <p className="max-w-md text-center text-sm text-muted-foreground">
+                  <Link
+                    href="/waitlist"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    {foundingCopy.heroWaitlistLink}
+                  </Link>
+                  {' · '}
+                  {foundingCopy.heroWaitlistHint}
+                </p>
+              )}
             </div>
           </Reveal>
         </div>

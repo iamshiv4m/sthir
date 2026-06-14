@@ -7,9 +7,9 @@ import { isFoundingFree } from '@/lib/founding';
 const foundingFree = isFoundingFree();
 
 export const metadata: Metadata = pageMetadata({
-  title: foundingFree ? 'Reserve a Founding Spot' : 'Join the Waitlist',
+  title: 'Join the Waitlist',
   description: foundingFree
-    ? 'Reserve a spot for the next Sthir cohort — free coach-reviewed strength programs for founding athletes in India.'
+    ? 'Email updates for the next Sthir cohort — no program on waitlist. Apply on intake for your free 4-week block.'
     : 'Reserve a founding spot for Sthir — coach-reviewed strength programs for India from ₹499.',
   path: '/waitlist',
 });

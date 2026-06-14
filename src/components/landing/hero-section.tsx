@@ -8,6 +8,7 @@ import { ProgramPreviewCard } from '@/components/landing/program-preview-card';
 import { SLA_HOURS } from '@/lib/constants';
 import {
   getMarketCopy,
+  foundingCopy,
   FOUNDING_BLOCK_PRICE_INR,
   hasFoundingFreeSlots,
 } from '@/lib/founding';
@@ -36,6 +37,7 @@ export function HeroSection({
     spotCount != null &&
     spotTarget != null &&
     !hasFoundingFreeSlots(spotCount, spotTarget);
+  const showWaitlistAsButton = !foundingFree || spotsFull;
 
   return (
     <section className="relative overflow-hidden border-b border-border">
@@ -61,12 +63,20 @@ export function HeroSection({
               {copy.heroSub}
             </p>
 
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+            <div
+              className={cn(
+                'mt-7 flex flex-col gap-3',
+                showWaitlistAsButton
+                  ? 'sm:flex-row sm:justify-center lg:justify-start'
+                  : 'items-center lg:items-start',
+              )}
+            >
               <Link
                 href="/intake"
                 className={cn(
                   buttonVariants({ size: 'lg' }),
                   'group h-12 gap-2 px-7 text-base shadow-lg shadow-primary/15',
+                  !showWaitlistAsButton && 'w-full sm:w-auto',
                 )}
               >
                 {canApplyFree
@@ -76,15 +86,31 @@ export function HeroSection({
                     : copy.primaryCta}
                 <ArrowRight className="size-4" />
               </Link>
-              <Link
-                href="/waitlist"
-                className={cn(
-                  buttonVariants({ variant: 'outline', size: 'lg' }),
-                  'h-12 px-7 text-base',
-                )}
-              >
-                {copy.secondaryCta}
-              </Link>
+
+              {showWaitlistAsButton ? (
+                <Link
+                  href="/waitlist"
+                  className={cn(
+                    buttonVariants({ variant: 'outline', size: 'lg' }),
+                    'h-12 px-7 text-base',
+                  )}
+                >
+                  {copy.secondaryCta}
+                </Link>
+              ) : (
+                foundingFree && (
+                  <p className="max-w-sm text-sm text-muted-foreground">
+                    <Link
+                      href="/waitlist"
+                      className="font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      {foundingCopy.heroWaitlistLink}
+                    </Link>
+                    {' · '}
+                    {foundingCopy.heroWaitlistHint}
+                  </p>
+                )
+              )}
             </div>
 
             {showSpots && (

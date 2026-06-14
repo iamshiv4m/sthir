@@ -190,7 +190,7 @@ export default function WaitlistForm() {
             </CardTitle>
             <CardDescription>
               {foundingFree
-                ? `Reserve one of ${FOUNDING_COHORT_SIZE} waitlist spots — no deposit. Want a free program now? Apply on intake (${FOUNDING_COHORT_SIZE} founding athletes).`
+                ? `Want a program now? Apply on intake for a free 4-week block (${FOUNDING_COHORT_SIZE} spots). Waitlist is email updates only — no program.`
                 : `₹99 refundable deposit secures your spot. Limited to ${FOUNDING_COHORT_SIZE} athletes.`}
             </CardDescription>
           </CardHeader>
