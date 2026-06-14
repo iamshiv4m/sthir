@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiUrl } from '@/lib/api';
 import {
@@ -22,7 +22,13 @@ import {
   isMeetFocusedGoal,
 } from '@/lib/labels';
 import { formatInr, getPriceForGoal } from '@/lib/pricing';
-import { foundingCopy, getMarketCopy, isFoundingFree } from '@/lib/founding';
+import {
+  foundingCopy,
+  getMarketCopy,
+  isFoundingFree,
+  FOUNDING_BLOCK_PRICE_INR,
+  FOUNDING_FREE_WEEKS,
+} from '@/lib/founding';
 import type { GoalId } from '@/lib/constants';
 import { FormField, NativeSelect } from '@/components/form-field';
 import { Input } from '@/components/ui/input';
@@ -123,6 +129,9 @@ export default function IntakeForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [freeSlotAvailable, setFreeSlotAvailable] = useState<boolean | null>(
+    null,
+  );
   const [error, setError] = useState('');
   const [form, setForm] = useState<FormState>({
     goal: params.get('goal') ?? 'first_meet',
@@ -207,6 +216,15 @@ export default function IntakeForm() {
   const progress = ((step + 1) / STEPS.length) * 100;
   const foundingFree = isFoundingFree();
   const marketCopy = getMarketCopy();
+  const qualifiesForFree = foundingFree && freeSlotAvailable !== false;
+
+  useEffect(() => {
+    if (!foundingFree) return;
+    fetch(apiUrl('/intake/stats'))
+      .then((r) => r.json())
+      .then((data) => setFreeSlotAvailable(data.freeSlotAvailable ?? false))
+      .catch(() => setFreeSlotAvailable(null));
+  }, [foundingFree]);
 
   return (
     <div>
@@ -214,7 +232,11 @@ export default function IntakeForm() {
         <div className="hero-glow pointer-events-none absolute inset-0 opacity-50" />
         <div className="relative mx-auto max-w-2xl px-4 py-10 sm:py-12">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-            {foundingFree ? 'Founding cohort · Free' : 'Program questionnaire'}
+            {foundingFree
+              ? qualifiesForFree
+                ? 'Founding cohort · Free 4 weeks'
+                : `Founding block · ₹${FOUNDING_BLOCK_PRICE_INR}`
+              : 'Program questionnaire'}
           </p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
             Tell us about your training
@@ -222,7 +244,9 @@ export default function IntakeForm() {
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             ~15 minutes ·{' '}
             {foundingFree
-              ? foundingCopy.intakeReviewLine(SLA_HOURS)
+              ? qualifiesForFree
+                ? foundingCopy.intakeReviewLine(SLA_HOURS)
+                : `Founding 4-week block — ₹${FOUNDING_BLOCK_PRICE_INR}. Coach-reviewed Excel within ${SLA_HOURS} hours.`
               : `Coach-reviewed program delivered in ${SLA_HOURS} hours`}
           </p>
         </div>
@@ -587,7 +611,9 @@ export default function IntakeForm() {
                   )}
                   <p className="pt-2 font-medium text-primary">
                     {foundingFree
-                      ? `Founding cohort — free · Excel program within ${SLA_HOURS}h`
+                      ? qualifiesForFree
+                        ? `Founding cohort — free ${FOUNDING_FREE_WEEKS}-week block · Excel within ${SLA_HOURS}h`
+                        : `Founding block — ₹${FOUNDING_BLOCK_PRICE_INR} · Excel within ${SLA_HOURS}h`
                       : `${formatInr(getPriceForGoal(form.goal as GoalId))} — delivered within ${SLA_HOURS}h`}
                   </p>
                 </CardContent>
@@ -655,7 +681,11 @@ export default function IntakeForm() {
               disabled={loading}
               onClick={submit}
             >
-              {loading ? 'Submitting...' : marketCopy.intakeSubmit}
+              {loading
+                ? 'Submitting...'
+                : foundingFree && !qualifiesForFree
+                  ? `Submit — ₹${FOUNDING_BLOCK_PRICE_INR}`
+                  : marketCopy.intakeSubmit}
             </Button>
           )}
         </div>

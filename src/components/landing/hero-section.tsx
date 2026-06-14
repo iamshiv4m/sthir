@@ -6,7 +6,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProgramPreviewCard } from '@/components/landing/program-preview-card';
 import { SLA_HOURS } from '@/lib/constants';
-import { getMarketCopy } from '@/lib/founding';
+import { getMarketCopy, FOUNDING_BLOCK_PRICE_INR } from '@/lib/founding';
 import { LANDING_IMAGES } from '@/lib/landing-images';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -15,15 +15,19 @@ export function HeroSection({
   spotCount,
   spotTarget,
   spotsFull,
+  freeSlotAvailable,
   foundingFree,
 }: {
   spotCount?: number;
   spotTarget?: number;
   spotsFull?: boolean;
+  freeSlotAvailable?: boolean;
   foundingFree: boolean;
 }) {
   const copy = getMarketCopy();
   const showSpots = spotCount != null && spotTarget != null && spotCount >= 0;
+  const canApplyFree =
+    foundingFree && freeSlotAvailable !== false && !spotsFull;
 
   return (
     <section className="relative overflow-hidden border-b border-border">
@@ -51,13 +55,17 @@ export function HeroSection({
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <Link
-                href={spotsFull ? '/waitlist' : '/intake'}
+                href="/intake"
                 className={cn(
                   buttonVariants({ size: 'lg' }),
                   'group h-12 gap-2 px-7 text-base shadow-lg shadow-primary/15',
                 )}
               >
-                {spotsFull ? 'Join waitlist' : copy.primaryCta}
+                {canApplyFree
+                  ? copy.primaryCta
+                  : foundingFree
+                    ? `Apply — ₹${FOUNDING_BLOCK_PRICE_INR}`
+                    : copy.primaryCta}
                 <ArrowRight className="size-4" />
               </Link>
               <Link
@@ -75,9 +83,9 @@ export function HeroSection({
               <p className="mx-auto mt-5 text-xs text-muted-foreground lg:mx-0">
                 {spotCount}/{spotTarget}{' '}
                 {foundingFree
-                  ? 'founding programs claimed'
+                  ? 'founding programs claimed · 4-week block'
                   : 'waitlist spots filled'}
-                {spotsFull && foundingFree && ' · cohort full'}
+                {spotsFull && foundingFree && ' · free spots filled'}
               </p>
             )}
           </div>

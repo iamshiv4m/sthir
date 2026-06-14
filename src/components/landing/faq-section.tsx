@@ -13,7 +13,8 @@ import { SectionHeader } from '@/components/landing/section-header';
 import {
   isFoundingFree,
   FOUNDING_COHORT_SIZE,
-  FOUNDING_FREE_END_LABEL,
+  FOUNDING_FREE_WEEKS,
+  FOUNDING_BLOCK_PRICE_INR,
 } from '@/lib/founding';
 
 function getFaqItems() {
@@ -35,7 +36,7 @@ function getFaqItems() {
           {
             id: 'why-free',
             q: 'Why is it free right now?',
-            a: `We're in our founding cohort — first ${FOUNDING_COHORT_SIZE} athletes get a free coach-reviewed program while we prove delivery quality. Paid pricing starts after ${FOUNDING_FREE_END_LABEL}; founding athletes get locked rates.`,
+            a: `We're in our founding cohort — first ${FOUNDING_COHORT_SIZE} athletes get a free ${FOUNDING_FREE_WEEKS}-week coach-reviewed block. After that, the founding block is ₹${FOUNDING_BLOCK_PRICE_INR}. Longer standard and meet-prep programs are coming soon.`,
           },
         ]
       : []),
@@ -50,7 +51,7 @@ function getFaqItems() {
       id: 'delivery',
       q: 'What do I actually receive?',
       a: foundingFree
-        ? 'A personalized Excel / Google Sheet-style program — weekly structure, sets, reps, RPE or %, and coach notes. Delivered within 12 hours by email after coach review. No payment during founding.'
+        ? 'A personalized 4-week Excel program — weekly structure, sets, reps, RPE or %, and coach notes. Delivered within 12 hours by email after coach review. Free for the first 20 athletes only.'
         : 'A personalized Google Sheet plus PDF — weekly structure, sets, reps, RPE or %, and coach notes. Delivered within 12 hours of payment.',
     },
     {

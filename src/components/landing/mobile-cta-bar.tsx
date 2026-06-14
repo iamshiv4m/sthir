@@ -16,7 +16,7 @@ export function MobileCtaBar() {
           <p className="truncate text-sm font-semibold">Training block</p>
           <p className="truncate text-xs text-muted-foreground">
             {foundingFree
-              ? 'Free founding cohort · Coach-reviewed · 12h'
+              ? 'Free 4-week founding · Coach-reviewed · 12h'
               : 'Coach-reviewed · 12h · from ₹499'}
           </p>
         </div>
