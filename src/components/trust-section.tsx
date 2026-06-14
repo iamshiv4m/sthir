@@ -75,10 +75,13 @@ export function TrustSection() {
                 >
                   Founding coach team
                 </Badge>
-                <p className="font-semibold">Reviewed by coaches who train in India</p>
+                <p className="font-semibold">
+                  Reviewed by coaches who train in India
+                </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  Powerlifting meets, strength blocks, and warehouse-gym athletes in Delhi,
-                  Mumbai & Bangalore. Adjusted for injuries and weak points — not copy-pasted.
+                  Powerlifting meets, strength blocks, and warehouse-gym
+                  athletes in Delhi, Mumbai & Bangalore. Adjusted for injuries
+                  and weak points — not copy-pasted.
                 </p>
               </CardContent>
             </div>

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { isFoundingFree, FOUNDING_COHORT_SIZE } from '@/lib/founding';
 
 type QueueItem = {
   id: string;
@@ -28,23 +29,32 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<QueueItem | null>(null);
   const [notes, setNotes] = useState('');
-  const [adminKey, setAdminKey] = useState('');
+  const [adminKey, setAdminKey] = useState(
+    () => process.env.NEXT_PUBLIC_ADMIN_API_KEY ?? '',
+  );
+  const foundingFree = isFoundingFree();
+
+  const adminHeaders = useCallback((): HeadersInit => {
+    return adminKey ? { 'x-admin-key': adminKey } : {};
+  }, [adminKey]);
 
   const load = useCallback(async () => {
-    const headers: HeadersInit = adminKey ? { 'x-admin-key': adminKey } : {};
-    const res = await fetch(apiUrl('/admin/queue'), { headers });
+    const res = await fetch(apiUrl('/admin/queue'), {
+      headers: adminHeaders(),
+    });
     if (!res.ok) return;
     const data = await res.json();
     setQueue(data.queue);
     setStats(data.stats);
-  }, [adminKey]);
+  }, [adminHeaders]);
 
   useEffect(() => {
     let active = true;
 
     async function refresh() {
-      const headers: HeadersInit = adminKey ? { 'x-admin-key': adminKey } : {};
-      const res = await fetch(apiUrl('/admin/queue'), { headers });
+      const res = await fetch(apiUrl('/admin/queue'), {
+        headers: adminHeaders(),
+      });
       if (!res.ok || !active) return;
       const data = await res.json();
       setQueue(data.queue);
@@ -57,7 +67,7 @@ export default function AdminPage() {
       active = false;
       clearInterval(t);
     };
-  }, [adminKey]);
+  }, [adminHeaders]);
 
   async function reviewAction(
     intakeId: string,
@@ -65,7 +75,7 @@ export default function AdminPage() {
   ) {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      ...(adminKey ? { 'x-admin-key': adminKey } : {}),
+      ...adminHeaders(),
     };
     await fetch(apiUrl(`/admin/programs/${intakeId}`), {
       method: 'POST',
@@ -80,6 +90,38 @@ export default function AdminPage() {
     setNotes('');
     load();
   }
+
+  async function downloadCsv(programId: string) {
+    const res = await fetch(apiUrl(`/programs/${programId}/csv`), {
+      headers: adminHeaders(),
+    });
+    if (!res.ok) {
+      alert('CSV download failed — check admin key and deliver status.');
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'sthir_program.csv';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const statCards = foundingFree
+    ? [
+        { label: 'Pending review', value: stats.pendingReview ?? 0 },
+        { label: 'Delivered', value: stats.delivered ?? 0 },
+        {
+          label: 'Founding programs',
+          value: `${stats.cohortCount ?? 0}/${FOUNDING_COHORT_SIZE}`,
+        },
+      ]
+    : [
+        { label: 'Pending review', value: stats.pendingReview ?? 0 },
+        { label: 'Delivered', value: stats.delivered ?? 0 },
+        { label: 'Waitlist', value: stats.waitlist ?? 0 },
+      ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
@@ -101,11 +143,7 @@ export default function AdminPage() {
       </div>
 
       <div className="mt-6 grid grid-cols-3 gap-4">
-        {[
-          { label: 'Pending review', value: stats.pendingReview ?? 0 },
-          { label: 'Delivered', value: stats.delivered ?? 0 },
-          { label: 'Waitlist', value: stats.waitlist ?? 0 },
-        ].map((s) => (
+        {statCards.map((s) => (
           <Card key={s.label}>
             <CardHeader className="pb-2 text-center">
               <p className="text-3xl font-bold">{s.value}</p>
@@ -189,12 +227,14 @@ export default function AdminPage() {
                 </Button>
               </div>
               {selected.program?.id && (
-                <a
-                  href={apiUrl(`/programs/${selected.program.id}/csv`)}
-                  className="inline-block text-sm text-primary hover:underline"
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 text-sm"
+                  onClick={() => downloadCsv(selected.program!.id)}
                 >
                   Download CSV export →
-                </a>
+                </Button>
               )}
             </CardContent>
           </Card>

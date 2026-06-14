@@ -4,6 +4,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SLA_HOURS } from '@/lib/constants';
+import { isFoundingFree } from '@/lib/founding';
 import { pageMetadata } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 import type { Metadata } from 'next';
@@ -15,14 +16,14 @@ export const metadata: Metadata = pageMetadata({
   noIndex: true,
 });
 
-const timeline = [
+const paidTimeline = [
   {
     title: 'Payment confirmed',
     desc: "Your intake is in our queue. You'll get a reference ID below.",
   },
   {
     title: 'Coach review',
-    desc: `A real coach reviews your program — goal, timeline, injuries, and weak points.`,
+    desc: 'A real coach reviews your program — goal, timeline, injuries, and weak points.',
   },
   {
     title: 'Delivery',
@@ -34,6 +35,25 @@ const timeline = [
   },
 ];
 
+const foundingTimeline = [
+  {
+    title: 'Intake submitted',
+    desc: 'Your profile is in the coach review queue. Save your reference ID below.',
+  },
+  {
+    title: 'Coach review',
+    desc: 'A real coach reviews your program — goal, timeline, injuries, and weak points.',
+  },
+  {
+    title: 'Delivery',
+    desc: `Coach sends your Excel program within ${SLA_HOURS} hours — email or WhatsApp.`,
+  },
+  {
+    title: 'Train',
+    desc: 'Follow Week 1 Day 1. Reply if anything looks off — revision before you start heavy.',
+  },
+];
+
 export default async function IntakeSuccessPage({
   searchParams,
 }: {
@@ -41,6 +61,8 @@ export default async function IntakeSuccessPage({
 }) {
   const { id, mock } = await searchParams;
   const isMock = mock === 'true';
+  const foundingFree = isFoundingFree();
+  const timeline = foundingFree ? foundingTimeline : paidTimeline;
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16">
@@ -48,9 +70,13 @@ export default async function IntakeSuccessPage({
         <CheckCircle2 className="mx-auto size-14 text-primary" />
         <h1 className="mt-4 text-3xl font-bold">You&apos;re in!</h1>
         <p className="mt-3 text-muted-foreground">
-          {isMock
-            ? 'Payment simulated (dev mode). Your program is in the coach review queue.'
-            : `Payment received. Your personalized program will be reviewed and delivered within ${SLA_HOURS} hours.`}
+          {foundingFree
+            ? isMock
+              ? 'Submission simulated (dev mode). Your program is in the coach review queue.'
+              : `Intake received — no payment required. Coach-reviewed Excel program within ${SLA_HOURS} hours.`
+            : isMock
+              ? 'Payment simulated (dev mode). Your program is in the coach review queue.'
+              : `Payment received. Your personalized program will be reviewed and delivered within ${SLA_HOURS} hours.`}
         </p>
         {id && (
           <Badge variant="secondary" className="mt-4 font-mono">
@@ -89,12 +115,17 @@ export default async function IntakeSuccessPage({
         >
           Back to home
         </Link>
-        <Link
-          href="/legal/refund"
-          className={cn(buttonVariants({ variant: 'outline' }), 'text-center')}
-        >
-          Refund policy
-        </Link>
+        {!foundingFree && (
+          <Link
+            href="/legal/refund"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'text-center',
+            )}
+          >
+            Refund policy
+          </Link>
+        )}
       </div>
     </div>
   );

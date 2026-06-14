@@ -18,6 +18,12 @@ import {
 } from 'lucide-react';
 import { apiUrl } from '@/lib/api';
 import { GOALS, SLA_HOURS } from '@/lib/constants';
+import {
+  FOUNDING_COHORT_SIZE,
+  FOUNDING_FREE_END_LABEL,
+  getMarketCopy,
+  isFoundingFree,
+} from '@/lib/founding';
 import { formatInr, getPriceForGoal } from '@/lib/pricing';
 import type { GoalId } from '@/lib/constants';
 import { buttonVariants } from '@/components/ui/button';
@@ -80,46 +86,97 @@ const STEPS = [
   },
 ];
 
-const PRICING = [
+const PRICING_PAID = [
   {
     name: 'Founding Program',
     price: '₹499',
     desc: '8–12 week block for the first 100 athletes',
     featured: true,
     tag: 'Best value',
+    futurePrice: undefined as string | undefined,
   },
   {
     name: 'Standard Block',
     price: '₹799',
     desc: 'Personalized strength programming for any goal',
     featured: false,
+    futurePrice: undefined as string | undefined,
   },
   {
     name: 'Meet Prep',
     price: '₹1,499',
     desc: '12–16 week peak + attempt selection guide',
     featured: false,
+    futurePrice: undefined as string | undefined,
+  },
+];
+
+const PRICING_FOUNDING = [
+  {
+    name: 'Founding Program',
+    price: 'Free',
+    futurePrice: '₹499',
+    desc: `Coach-reviewed Excel block — first ${FOUNDING_COHORT_SIZE} athletes`,
+    featured: true,
+    tag: 'Founding cohort',
+  },
+  {
+    name: 'Standard Block',
+    price: 'Free',
+    futurePrice: '₹799',
+    desc: 'Strength, powerbuilding, or general SBD',
+    featured: false,
+  },
+  {
+    name: 'Meet Prep',
+    price: 'Free',
+    futurePrice: '₹1,499',
+    desc: '12–16 week meet-focused peak',
+    featured: false,
   },
 ];
 
 export function LandingPage() {
-  const [waitlistStats, setWaitlistStats] = useState<{
+  const [spotStats, setSpotStats] = useState<{
     count: number;
     target: number;
+    full?: boolean;
   } | null>(null);
+  const foundingFree = isFoundingFree();
+  const marketCopy = getMarketCopy();
+  const pricingTiers = foundingFree ? PRICING_FOUNDING : PRICING_PAID;
 
   useEffect(() => {
-    fetch(apiUrl('/waitlist'))
+    const statsUrl = foundingFree
+      ? apiUrl('/intake/stats')
+      : apiUrl('/waitlist');
+    fetch(statsUrl)
       .then((r) => r.json())
-      .then(setWaitlistStats)
+      .then((data) => {
+        if (foundingFree) {
+          setSpotStats({
+            count: data.cohortCount ?? 0,
+            target: data.cohortSize ?? FOUNDING_COHORT_SIZE,
+            full: data.cohortFull,
+          });
+        } else {
+          setSpotStats({
+            count: data.count,
+            target: data.target ?? FOUNDING_COHORT_SIZE,
+            full: data.full,
+          });
+        }
+      })
       .catch(() => null);
-  }, []);
+  }, [foundingFree]);
 
   return (
     <div className="pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
       <HeroSection
-        waitlistCount={waitlistStats?.count}
-        waitlistTarget={waitlistStats?.target}
+        spotCount={spotStats?.count}
+        spotTarget={spotStats?.target}
+        spotsFull={spotStats?.full}
+        foundingFree={foundingFree}
       />
 
       <TrainingActivityStrip />
@@ -163,7 +220,9 @@ export function LandingPage() {
                       </CardHeader>
                       <CardContent className="flex items-center justify-between pt-0">
                         <p className="text-sm font-semibold text-primary">
-                          from {formatInr(getPriceForGoal(goal.id as GoalId))}
+                          {foundingFree
+                            ? 'Free · founding cohort'
+                            : `from ${formatInr(getPriceForGoal(goal.id as GoalId))}`}
                         </p>
                         <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
                       </CardContent>
@@ -229,13 +288,13 @@ export function LandingPage() {
       <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
         <Reveal>
           <SectionHeader
-            eyebrow="Pricing"
-            title="Simple, India-first pricing"
-            description="One-time program purchase. No subscriptions. Founding rate for early athletes."
+            eyebrow={marketCopy.pricingEyebrow}
+            title={marketCopy.pricingTitle}
+            description={marketCopy.pricingDescription}
           />
         </Reveal>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {PRICING.map((tier, i) => (
+          {pricingTiers.map((tier, i) => (
             <Reveal key={tier.name} delay={i * 70}>
               <div
                 className={cn(
@@ -263,6 +322,11 @@ export function LandingPage() {
                     <p className="text-4xl font-bold tracking-tight text-primary">
                       {tier.price}
                     </p>
+                    {tier.futurePrice && (
+                      <p className="text-sm text-muted-foreground line-through">
+                        Then {tier.futurePrice}
+                      </p>
+                    )}
                     <CardDescription>{tier.desc}</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -275,7 +339,7 @@ export function LandingPage() {
                         'w-full',
                       )}
                     >
-                      Get started
+                      {foundingFree ? 'Apply free' : 'Get started'}
                     </Link>
                   </CardContent>
                 </Card>
@@ -283,6 +347,12 @@ export function LandingPage() {
             </Reveal>
           ))}
         </div>
+        {foundingFree && (
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Paid pricing after {FOUNDING_FREE_END_LABEL}. Founding athletes lock
+            in ₹499 rates when we switch.
+          </p>
+        )}
       </section>
 
       <section className="relative overflow-hidden border-y border-border">
@@ -305,7 +375,9 @@ export function LandingPage() {
                   'h-12 gap-2 px-8 text-base shadow-lg shadow-primary/20',
                 )}
               >
-                Start training block
+                {foundingFree
+                  ? 'Start free founding block'
+                  : 'Start training block'}
                 <ArrowRight className="size-4" />
               </Link>
               <Link
@@ -315,7 +387,7 @@ export function LandingPage() {
                   'h-12 px-8 text-base',
                 )}
               >
-                Join waitlist
+                {foundingFree ? 'Reserve a spot' : 'Join waitlist'}
               </Link>
             </div>
           </Reveal>

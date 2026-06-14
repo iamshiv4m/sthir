@@ -22,8 +22,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { isFoundingFree, FOUNDING_COHORT_SIZE } from '@/lib/founding';
 
 export default function WaitlistForm() {
+  const foundingFree = isFoundingFree();
   const params = useSearchParams();
   const [form, setForm] = useState({
     name: '',
@@ -31,7 +33,7 @@ export default function WaitlistForm() {
     city: '',
     goal: params.get('goal') ?? 'first_meet',
     referralCode: params.get('ref') ?? '',
-    payDeposit: true,
+    payDeposit: !foundingFree,
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>(
     'idle',
@@ -53,13 +55,23 @@ export default function WaitlistForm() {
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed');
+      if (!res.ok) {
+        const errMsg =
+          typeof data.message === 'string'
+            ? data.message
+            : typeof data.error === 'string'
+              ? data.error
+              : 'Failed';
+        throw new Error(errMsg);
+      }
       setStatus('done');
       setResult({ id: data.id, orderId: data.orderId, mock: data.mock });
       setMessage(
-        data.mock
-          ? "Spot reserved (dev mode). In production you'd complete ₹99 payment via Razorpay."
-          : 'Complete your ₹99 deposit to lock founding pricing.',
+        foundingFree
+          ? "You're on the list — we'll email when new cohort spots open."
+          : data.mock
+            ? "Spot reserved (dev mode). In production you'd complete ₹99 payment via Razorpay."
+            : 'Complete your ₹99 deposit to lock founding pricing.',
       );
     } catch (err) {
       setStatus('error');
@@ -91,33 +103,64 @@ export default function WaitlistForm() {
             <CardTitle className="text-lg">What happens next</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <div className="flex gap-3">
-              <span className="font-semibold text-primary">1.</span>
-              <p>
-                <strong>Deposit confirmed</strong> — your ₹99 is fully
-                refundable until you buy a program.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <span className="font-semibold text-primary">2.</span>
-              <p>
-                <strong>Founding pricing locked</strong> — you get first access
-                at ₹499 when we open intake slots.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <span className="font-semibold text-primary">3.</span>
-              <p>
-                <strong>We email you</strong> when your cohort opens. No spam —
-                just launch updates for {goalLabel(form.goal)} athletes.
-              </p>
-            </div>
+            {foundingFree ? (
+              <>
+                <div className="flex gap-3">
+                  <span className="font-semibold text-primary">1.</span>
+                  <p>
+                    <strong>Spot reserved</strong> — no deposit during founding
+                    cohort.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="font-semibold text-primary">2.</span>
+                  <p>
+                    <strong>Want a program now?</strong> Skip the wait — apply
+                    on intake for a free coach-reviewed block.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="font-semibold text-primary">3.</span>
+                  <p>
+                    <strong>We email you</strong> when your cohort opens. Launch
+                    updates only — no spam.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex gap-3">
+                  <span className="font-semibold text-primary">1.</span>
+                  <p>
+                    <strong>Deposit confirmed</strong> — your ₹99 is fully
+                    refundable until you buy a program.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="font-semibold text-primary">2.</span>
+                  <p>
+                    <strong>Founding pricing locked</strong> — you get first
+                    access at ₹499 when we open intake slots.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="font-semibold text-primary">3.</span>
+                  <p>
+                    <strong>We email you</strong> when your cohort opens. No
+                    spam — just launch updates for {goalLabel(form.goal)}{' '}
+                    athletes.
+                  </p>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link href="/intake" className={cn(buttonVariants(), 'text-center')}>
-            Skip the wait — get program now
+            {foundingFree
+              ? 'Get free program now'
+              : 'Skip the wait — get program now'}
           </Link>
           <Link
             href="/"
@@ -146,8 +189,9 @@ export default function WaitlistForm() {
               Join the Founding Lifters
             </CardTitle>
             <CardDescription>
-              ₹99 refundable deposit secures your spot. Target: first 50
-              athletes.
+              {foundingFree
+                ? `Reserve one of ${FOUNDING_COHORT_SIZE} waitlist spots — no deposit. Want a free program now? Apply on intake (${FOUNDING_COHORT_SIZE} founding athletes).`
+                : `₹99 refundable deposit secures your spot. Limited to ${FOUNDING_COHORT_SIZE} athletes.`}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -194,18 +238,20 @@ export default function WaitlistForm() {
             onChange={(e) => setForm({ ...form, referralCode: e.target.value })}
           />
         </FormField>
-        <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-          <Checkbox
-            id="deposit"
-            checked={form.payDeposit}
-            onCheckedChange={(checked) =>
-              setForm({ ...form, payDeposit: checked === true })
-            }
-          />
-          <Label htmlFor="deposit" className="text-sm text-muted-foreground">
-            Pay ₹99 refundable deposit now
-          </Label>
-        </div>
+        {!foundingFree && (
+          <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+            <Checkbox
+              id="deposit"
+              checked={form.payDeposit}
+              onCheckedChange={(checked) =>
+                setForm({ ...form, payDeposit: checked === true })
+              }
+            />
+            <Label htmlFor="deposit" className="text-sm text-muted-foreground">
+              Pay ₹99 refundable deposit now
+            </Label>
+          </div>
+        )}
         <Button
           type="submit"
           className="w-full"
@@ -222,13 +268,15 @@ export default function WaitlistForm() {
         </Alert>
       )}
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        Deposit fully refundable per our{' '}
-        <Link href="/legal/refund" className="text-primary hover:underline">
-          refund policy
-        </Link>
-        .
-      </p>
+      {!foundingFree && (
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Deposit fully refundable per our{' '}
+          <Link href="/legal/refund" className="text-primary hover:underline">
+            refund policy
+          </Link>
+          .
+        </p>
+      )}
     </div>
   );
 }

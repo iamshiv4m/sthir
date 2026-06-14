@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { SthirMark } from '@/components/brand/sthir-logo';
 import { cn } from '@/lib/utils';
+import { isFoundingFree } from '@/lib/founding';
 
 const navLinks = [
   { href: '/partners', label: 'Gyms' },
@@ -14,6 +15,8 @@ const navLinks = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const foundingFree = isFoundingFree();
+  const ctaLabel = foundingFree ? 'Free block' : 'Start Block';
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -40,7 +43,7 @@ export function SiteHeader() {
             </Link>
           ))}
           <Link href="/intake" className={buttonVariants({ size: 'sm' })}>
-            Start Block
+            {ctaLabel}
           </Link>
         </nav>
 
@@ -52,7 +55,7 @@ export function SiteHeader() {
               'h-11 min-w-[5.5rem] px-3 text-xs',
             )}
           >
-            Start Block
+            {ctaLabel}
           </Link>
           <Button
             variant="ghost"
@@ -83,7 +86,7 @@ export function SiteHeader() {
               onClick={() => setOpen(false)}
               className="mt-1 rounded-lg bg-primary px-3 py-2.5 text-center text-sm font-medium text-primary-foreground"
             >
-              Start Block
+              {ctaLabel}
             </Link>
           </div>
         </nav>

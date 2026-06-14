@@ -2,11 +2,15 @@ import { Suspense } from 'react';
 import WaitlistForm from './waitlist-form';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/seo';
+import { isFoundingFree } from '@/lib/founding';
+
+const foundingFree = isFoundingFree();
 
 export const metadata: Metadata = pageMetadata({
-  title: 'Join the Waitlist',
-  description:
-    'Reserve a founding spot for Sthir — coach-reviewed strength programs for India from ₹499.',
+  title: foundingFree ? 'Reserve a Founding Spot' : 'Join the Waitlist',
+  description: foundingFree
+    ? 'Reserve a spot for the next Sthir cohort — free coach-reviewed strength programs for founding athletes in India.'
+    : 'Reserve a founding spot for Sthir — coach-reviewed strength programs for India from ₹499.',
   path: '/waitlist',
 });
 

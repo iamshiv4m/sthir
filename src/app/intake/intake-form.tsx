@@ -22,6 +22,7 @@ import {
   isMeetFocusedGoal,
 } from '@/lib/labels';
 import { formatInr, getPriceForGoal } from '@/lib/pricing';
+import { foundingCopy, getMarketCopy, isFoundingFree } from '@/lib/founding';
 import type { GoalId } from '@/lib/constants';
 import { FormField, NativeSelect } from '@/components/form-field';
 import { Input } from '@/components/ui/input';
@@ -186,7 +187,15 @@ export default function IntakeForm() {
         body: JSON.stringify({ ...form, disclaimerAccepted: true }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(JSON.stringify(data.error));
+      if (!res.ok) {
+        const message =
+          typeof data.message === 'string'
+            ? data.message
+            : typeof data.error === 'string'
+              ? data.error
+              : JSON.stringify(data.error ?? data);
+        throw new Error(message);
+      }
       router.push(`/intake/success?id=${data.id}&mock=${data.mock}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Submission failed');
@@ -196,6 +205,8 @@ export default function IntakeForm() {
   }
 
   const progress = ((step + 1) / STEPS.length) * 100;
+  const foundingFree = isFoundingFree();
+  const marketCopy = getMarketCopy();
 
   return (
     <div>
@@ -203,13 +214,16 @@ export default function IntakeForm() {
         <div className="hero-glow pointer-events-none absolute inset-0 opacity-50" />
         <div className="relative mx-auto max-w-2xl px-4 py-10 sm:py-12">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
-            Program questionnaire
+            {foundingFree ? 'Founding cohort · Free' : 'Program questionnaire'}
           </p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
             Tell us about your training
           </h1>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-            ~15 minutes · Coach-reviewed program delivered in {SLA_HOURS} hours
+            ~15 minutes ·{' '}
+            {foundingFree
+              ? foundingCopy.intakeReviewLine(SLA_HOURS)
+              : `Coach-reviewed program delivered in ${SLA_HOURS} hours`}
           </p>
         </div>
       </div>
@@ -572,8 +586,9 @@ export default function IntakeForm() {
                     </p>
                   )}
                   <p className="pt-2 font-medium text-primary">
-                    Total: {formatInr(getPriceForGoal(form.goal as GoalId))} —
-                    delivered within {SLA_HOURS}h
+                    {foundingFree
+                      ? `Founding cohort — free · Excel program within ${SLA_HOURS}h`
+                      : `${formatInr(getPriceForGoal(form.goal as GoalId))} — delivered within ${SLA_HOURS}h`}
                   </p>
                 </CardContent>
               </Card>
@@ -640,7 +655,7 @@ export default function IntakeForm() {
               disabled={loading}
               onClick={submit}
             >
-              {loading ? 'Submitting...' : 'Pay & Submit'}
+              {loading ? 'Submitting...' : marketCopy.intakeSubmit}
             </Button>
           )}
         </div>

@@ -1,24 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProgramPreviewCard } from '@/components/landing/program-preview-card';
 import { SLA_HOURS } from '@/lib/constants';
+import { getMarketCopy } from '@/lib/founding';
 import { LANDING_IMAGES } from '@/lib/landing-images';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 export function HeroSection({
-  waitlistCount,
-  waitlistTarget,
+  spotCount,
+  spotTarget,
+  spotsFull,
+  foundingFree,
 }: {
-  waitlistCount?: number;
-  waitlistTarget?: number;
+  spotCount?: number;
+  spotTarget?: number;
+  spotsFull?: boolean;
+  foundingFree: boolean;
 }) {
-  const showSpots =
-    waitlistCount != null && waitlistTarget != null && waitlistCount > 0;
+  const copy = getMarketCopy();
+  const showSpots = spotCount != null && spotTarget != null && spotCount >= 0;
 
   return (
     <section className="relative overflow-hidden border-b border-border">
@@ -32,7 +37,7 @@ export function HeroSection({
               variant="secondary"
               className="mb-4 border-0 bg-primary/10 px-3 py-0.5 text-xs text-primary"
             >
-              Strength sports · India
+              {copy.heroBadge}
             </Badge>
 
             <h1 className="hero-title mx-auto max-w-xl text-[1.875rem] font-bold leading-[1.1] tracking-tight sm:text-[2.75rem] lg:mx-0 lg:max-w-lg">
@@ -41,19 +46,18 @@ export function HeroSection({
             </h1>
 
             <p className="mx-auto mt-4 max-w-md text-base text-muted-foreground lg:mx-0">
-              Powerlifting, strength & powerbuilding — personalized for Indian
-              athletes. Sheet + PDF delivered after payment.
+              {copy.heroSub}
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <Link
-                href="/intake"
+                href={spotsFull ? '/waitlist' : '/intake'}
                 className={cn(
                   buttonVariants({ size: 'lg' }),
                   'group h-12 gap-2 px-7 text-base shadow-lg shadow-primary/15',
                 )}
               >
-                Get Your Block
+                {spotsFull ? 'Join waitlist' : copy.primaryCta}
                 <ArrowRight className="size-4" />
               </Link>
               <Link
@@ -63,13 +67,17 @@ export function HeroSection({
                   'h-12 px-7 text-base',
                 )}
               >
-                Waitlist — ₹99
+                {copy.secondaryCta}
               </Link>
             </div>
 
             {showSpots && (
               <p className="mx-auto mt-5 text-xs text-muted-foreground lg:mx-0">
-                {waitlistCount}/{waitlistTarget} founding spots filled
+                {spotCount}/{spotTarget}{' '}
+                {foundingFree
+                  ? 'founding programs claimed'
+                  : 'waitlist spots filled'}
+                {spotsFull && foundingFree && ' · cohort full'}
               </p>
             )}
           </div>
@@ -87,6 +95,7 @@ export function HeroSection({
                     alt={LANDING_IMAGES.hero.alt}
                     fill
                     priority
+                    loading="eager"
                     sizes="(max-width: 1024px) 90vw, 420px"
                     className="object-cover"
                   />

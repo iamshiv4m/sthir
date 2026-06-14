@@ -34,7 +34,9 @@ export function TrainingGallery() {
                 <p className="text-xs font-medium uppercase tracking-wider text-primary">
                   {featured.label}
                 </p>
-                <p className="mt-1 max-w-sm text-sm text-foreground/90">{featured.alt}</p>
+                <p className="mt-1 max-w-sm text-sm text-foreground/90">
+                  {featured.alt}
+                </p>
               </figcaption>
             </figure>
           </Reveal>
