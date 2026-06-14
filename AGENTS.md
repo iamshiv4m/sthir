@@ -63,6 +63,7 @@ pnpm lint
 
 ## References
 
+- **Cursor skills:** `../.cursor/skills/sthir-platform/SKILL.md` — read before any feature
 - [../sthir-api/docs/product/prd-phase1.md](../sthir-api/docs/product/prd-phase1.md)
 - [../sthir-api/docs/architecture/overview.md](../sthir-api/docs/architecture/overview.md)
 - [../sthir-api/README.md](../sthir-api/README.md)
