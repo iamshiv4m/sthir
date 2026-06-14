@@ -13,6 +13,14 @@ export function isFoundingFree(): boolean {
   return process.env.NEXT_PUBLIC_FOUNDING_FREE === 'true';
 }
 
+/** Use cohort count from API — do not rely on backend freeSlotAvailable alone. */
+export function hasFoundingFreeSlots(
+  claimed: number,
+  target = FOUNDING_COHORT_SIZE,
+): boolean {
+  return claimed < target;
+}
+
 export const foundingCopy = {
   heroBadge: 'Founding cohort · Free 4 weeks',
   heroSub:

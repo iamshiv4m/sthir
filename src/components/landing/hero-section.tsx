@@ -6,7 +6,11 @@ import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProgramPreviewCard } from '@/components/landing/program-preview-card';
 import { SLA_HOURS } from '@/lib/constants';
-import { getMarketCopy, FOUNDING_BLOCK_PRICE_INR } from '@/lib/founding';
+import {
+  getMarketCopy,
+  FOUNDING_BLOCK_PRICE_INR,
+  hasFoundingFreeSlots,
+} from '@/lib/founding';
 import { LANDING_IMAGES } from '@/lib/landing-images';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -14,20 +18,24 @@ import Image from 'next/image';
 export function HeroSection({
   spotCount,
   spotTarget,
-  spotsFull,
-  freeSlotAvailable,
   foundingFree,
 }: {
   spotCount?: number;
   spotTarget?: number;
-  spotsFull?: boolean;
-  freeSlotAvailable?: boolean;
   foundingFree: boolean;
 }) {
   const copy = getMarketCopy();
   const showSpots = spotCount != null && spotTarget != null && spotCount >= 0;
   const canApplyFree =
-    foundingFree && freeSlotAvailable !== false && !spotsFull;
+    foundingFree &&
+    (spotCount == null ||
+      spotTarget == null ||
+      hasFoundingFreeSlots(spotCount, spotTarget));
+  const spotsFull =
+    foundingFree &&
+    spotCount != null &&
+    spotTarget != null &&
+    !hasFoundingFreeSlots(spotCount, spotTarget);
 
   return (
     <section className="relative overflow-hidden border-b border-border">

@@ -24,6 +24,7 @@ import {
   foundingCopy,
   getFoundingPricingTiers,
   getMarketCopy,
+  hasFoundingFreeSlots,
   isFoundingFree,
 } from '@/lib/founding';
 import { formatInr, getPriceForGoal } from '@/lib/pricing';
@@ -138,13 +139,18 @@ export function LandingPage() {
   } | null>(null);
   const foundingFree = isFoundingFree();
   const marketCopy = getMarketCopy();
-  const cohortFull = spotStats?.full ?? false;
+  const claimed = spotStats?.count;
+  const target = spotStats?.target ?? FOUNDING_COHORT_SIZE;
+  const cohortFull =
+    claimed != null && !hasFoundingFreeSlots(claimed, target);
   const pricingTiers: PricingTier[] = foundingFree
     ? getFoundingPricingTiers(cohortFull)
     : PRICING_PAID;
   const pricingDescription =
     foundingFree && typeof foundingCopy.pricingDescription === 'function'
-      ? foundingCopy.pricingDescription(spotStats?.spotsRemaining ?? null)
+      ? foundingCopy.pricingDescription(
+          claimed != null ? Math.max(0, target - claimed) : null,
+        )
       : typeof marketCopy.pricingDescription === 'string'
         ? marketCopy.pricingDescription
         : '';
@@ -180,8 +186,6 @@ export function LandingPage() {
       <HeroSection
         spotCount={spotStats?.count}
         spotTarget={spotStats?.target}
-        spotsFull={spotStats?.full}
-        freeSlotAvailable={spotStats?.freeSlotAvailable}
         foundingFree={foundingFree}
       />
 
@@ -231,7 +235,10 @@ export function LandingPage() {
                       <CardContent className="flex items-center justify-between pt-0">
                         <p className="text-sm font-semibold text-primary">
                           {foundingFree
-                            ? spotStats?.freeSlotAvailable !== false
+                            ? hasFoundingFreeSlots(
+                                spotStats?.count ?? 0,
+                                spotStats?.target ?? FOUNDING_COHORT_SIZE,
+                              ) || spotStats == null
                               ? 'Free · 4 weeks'
                               : `₹${FOUNDING_BLOCK_PRICE_INR} · 4 weeks`
                             : `from ${formatInr(getPriceForGoal(goal.id as GoalId))}`}

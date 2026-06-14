@@ -27,7 +27,9 @@ import {
   getMarketCopy,
   isFoundingFree,
   FOUNDING_BLOCK_PRICE_INR,
+  FOUNDING_COHORT_SIZE,
   FOUNDING_FREE_WEEKS,
+  hasFoundingFreeSlots,
 } from '@/lib/founding';
 import type { GoalId } from '@/lib/constants';
 import { FormField, NativeSelect } from '@/components/form-field';
@@ -129,9 +131,7 @@ export default function IntakeForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [freeSlotAvailable, setFreeSlotAvailable] = useState<boolean | null>(
-    null,
-  );
+  const [cohortClaimed, setCohortClaimed] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState<FormState>({
     goal: params.get('goal') ?? 'first_meet',
@@ -216,14 +216,17 @@ export default function IntakeForm() {
   const progress = ((step + 1) / STEPS.length) * 100;
   const foundingFree = isFoundingFree();
   const marketCopy = getMarketCopy();
-  const qualifiesForFree = foundingFree && freeSlotAvailable !== false;
+  const qualifiesForFree =
+    foundingFree &&
+    (cohortClaimed == null ||
+      hasFoundingFreeSlots(cohortClaimed, FOUNDING_COHORT_SIZE));
 
   useEffect(() => {
     if (!foundingFree) return;
     fetch(apiUrl('/intake/stats'))
       .then((r) => r.json())
-      .then((data) => setFreeSlotAvailable(data.freeSlotAvailable ?? false))
-      .catch(() => setFreeSlotAvailable(null));
+      .then((data) => setCohortClaimed(data.cohortCount ?? 0))
+      .catch(() => setCohortClaimed(null));
   }, [foundingFree]);
 
   return (
