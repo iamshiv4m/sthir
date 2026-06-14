@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProgramPreviewCard } from '@/components/landing/program-preview-card';
 import { SLA_HOURS } from '@/lib/constants';
+import { LANDING_IMAGES } from '@/lib/landing-images';
 import { cn } from '@/lib/utils';
 
 export function HeroSection({
@@ -78,6 +80,24 @@ export function HeroSection({
               aria-hidden
             />
             <div className="hero-card-enter relative motion-safe:animate-[hero-card-enter_0.7s_ease-out_both]">
+              <figure className="relative mb-4 overflow-hidden rounded-2xl border border-border/70 shadow-lg shadow-black/30">
+                <div className="relative aspect-[16/10]">
+                  <Image
+                    src={LANDING_IMAGES.hero.src}
+                    alt={LANDING_IMAGES.hero.alt}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 90vw, 420px"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
+                  <figcaption className="absolute bottom-3 left-3 right-3">
+                    <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                      Warehouse gym · India
+                    </p>
+                  </figcaption>
+                </div>
+              </figure>
               <ProgramPreviewCard />
             </div>
           </div>

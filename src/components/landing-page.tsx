@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
   ArrowRight,
@@ -36,6 +37,8 @@ import { SectionHeader } from '@/components/landing/section-header';
 import { FaqSection } from '@/components/landing/faq-section';
 import { GoalCarousel } from '@/components/landing/goal-carousel';
 import { TrainingActivityStrip } from '@/components/landing/training-activity-strip';
+import { TrainingGallery } from '@/components/landing/training-gallery';
+import { LANDING_IMAGES } from '@/lib/landing-images';
 import { BarbellDivider } from '@/components/landing/barbell-divider';
 import { cn } from '@/lib/utils';
 
@@ -59,18 +62,21 @@ const STEPS = [
     icon: ClipboardList,
     title: 'Log your training profile',
     desc: 'Goals, maxes, injuries, equipment — 15 minutes. Competing? Add federation & meet date.',
+    image: LANDING_IMAGES.steps[0],
   },
   {
     step: '02',
     icon: Dumbbell,
     title: 'We write your block',
     desc: 'Volume, intensity, and progression — rules engine + coach review. Sheet & PDF in 12h.',
+    image: LANDING_IMAGES.steps[1],
   },
   {
     step: '03',
     icon: Trophy,
     title: 'Train & progress',
     desc: 'Follow the program, hit PRs, or show up on meet day — whatever your goal is.',
+    image: LANDING_IMAGES.steps[2],
   },
 ];
 
@@ -118,6 +124,8 @@ export function LandingPage() {
 
       <TrainingActivityStrip />
       <BarbellDivider />
+
+      <TrainingGallery />
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
         <Reveal>
@@ -183,8 +191,18 @@ export function LandingPage() {
             {STEPS.map((item, i) => (
               <Reveal key={item.step} delay={i * 80}>
                 <Card className="relative h-full overflow-hidden border-border/60 bg-card/50">
-                  <div className="absolute right-4 top-4 font-mono text-4xl font-bold text-primary/10">
-                    {item.step}
+                  <div className="relative aspect-[16/9] w-full">
+                    <Image
+                      src={item.image.src}
+                      alt={item.image.alt}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+                    <div className="absolute right-4 top-4 font-mono text-4xl font-bold text-primary/25">
+                      {item.step}
+                    </div>
                   </div>
                   <CardHeader className="relative">
                     <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-primary/12">

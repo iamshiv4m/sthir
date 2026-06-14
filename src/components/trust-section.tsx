@@ -1,7 +1,9 @@
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Layers, UserCheck } from 'lucide-react';
 import { SLA_HOURS } from '@/lib/constants';
+import { LANDING_IMAGES } from '@/lib/landing-images';
 import { Reveal } from '@/components/landing/reveal';
 import { SectionHeader } from '@/components/landing/section-header';
 
@@ -54,28 +56,32 @@ export function TrustSection() {
         </div>
 
         <Reveal delay={200}>
-          <Card className="mx-auto mt-8 max-w-2xl overflow-hidden border-primary/25 bg-gradient-to-br from-primary/10 via-card/80 to-card/80">
-            <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
-              <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-2xl font-bold text-primary ring-1 ring-primary/20">
-                S
+          <Card className="mx-auto mt-8 max-w-3xl overflow-hidden border-primary/25 bg-card/80">
+            <div className="grid sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+              <div className="relative min-h-[200px] sm:min-h-full">
+                <Image
+                  src={LANDING_IMAGES.coach.src}
+                  alt={LANDING_IMAGES.coach.alt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 360px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/90 sm:bg-gradient-to-r sm:from-transparent sm:to-card" />
               </div>
-              <div>
+              <CardContent className="flex flex-col justify-center p-6 sm:p-7">
                 <Badge
                   variant="secondary"
-                  className="mb-2 border-primary/20 bg-primary/10 text-primary"
+                  className="mb-2 w-fit border-primary/20 bg-primary/10 text-primary"
                 >
                   Founding coach team
                 </Badge>
-                <p className="font-semibold">
-                  Reviewed by coaches who train in India
-                </p>
+                <p className="font-semibold">Reviewed by coaches who train in India</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  Powerlifting meets, strength blocks, and warehouse-gym
-                  athletes in Delhi, Mumbai & Bangalore. Adjusted for injuries
-                  and weak points — not copy-pasted.
+                  Powerlifting meets, strength blocks, and warehouse-gym athletes in Delhi,
+                  Mumbai & Bangalore. Adjusted for injuries and weak points — not copy-pasted.
                 </p>
-              </div>
-            </CardContent>
+              </CardContent>
+            </div>
           </Card>
         </Reveal>
       </div>
