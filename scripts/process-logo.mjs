@@ -118,30 +118,54 @@ await trimmed
 
 await trimmed.clone().toFile(join(brandDir, 'sthir-logo.png'));
 
-// OG: 1200×630 social card (logo + tagline)
+// OG: 1200×630 dark social card (matches site .dark + hero-glow)
 const ogW = 1200;
 const ogH = 630;
 const logoForOg = await trimmed
   .clone()
-  .resize(480, 480, { fit: 'inside' })
+  .resize(360, 360, { fit: 'inside' })
   .png()
   .toBuffer();
 const logoMeta = await sharp(logoForOg).metadata();
-const logoLeft = Math.floor((ogW - (logoMeta.width ?? 480)) / 2);
-const logoTop = Math.floor((ogH - (logoMeta.height ?? 480)) / 2) - 50;
+const logoW = logoMeta.width ?? 360;
+const logoH = logoMeta.height ?? 360;
+const cardW = logoW + 96;
+const cardH = logoH + 72;
+const cardLeft = Math.floor((ogW - cardW) / 2);
+const cardTop = Math.floor((ogH - cardH) / 2) - 36;
+const logoLeft = cardLeft + Math.floor((cardW - logoW) / 2);
+const logoTop = cardTop + 24;
 
-const ogTextSvg =
-  Buffer.from(`<svg width="${ogW}" height="${ogH}" xmlns="http://www.w3.org/2000/svg">
+const ogTextSvg = Buffer.from(`<svg width="${ogW}" height="${ogH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="glow" cx="50%" cy="35%" r="55%">
-      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#0a0a0c" stop-opacity="0"/>
+    <radialGradient id="heroTop" cx="50%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#d4a017" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="heroRight" cx="92%" cy="18%" r="45%">
+      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#d4a017" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="heroLeft" cx="8%" cy="62%" r="38%">
+      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#d4a017" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="topLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d4a017" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#e8b84a" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#d4a017" stop-opacity="0"/>
+    </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="#0a0a0c"/>
-  <rect width="100%" height="100%" fill="url(#glow)"/>
-  <text x="600" y="520" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="34" font-weight="700" fill="#e8b84a">Strength · Focus · Progress</text>
-  <text x="600" y="565" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="22" fill="#9ca3af">Coach-reviewed programs for India · sthir.in</text>
+  <rect width="100%" height="100%" fill="#121216"/>
+  <rect width="100%" height="100%" fill="url(#heroTop)"/>
+  <rect width="100%" height="100%" fill="url(#heroRight)"/>
+  <rect width="100%" height="100%" fill="url(#heroLeft)"/>
+  <rect x="0" y="0" width="${ogW}" height="2" fill="url(#topLine)"/>
+  <rect x="${cardLeft}" y="${cardTop}" width="${cardW}" height="${cardH}" rx="28" fill="#1c1c22" stroke="#ffffff" stroke-opacity="0.1"/>
+  <rect x="${cardLeft + 28}" y="${cardTop + cardH + 28}" width="${cardW - 56}" height="34" rx="17" fill="#d4a017" fill-opacity="0.12" stroke="#d4a017" stroke-opacity="0.35"/>
+  <text x="${ogW / 2}" y="${cardTop + cardH + 51}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em" fill="#e8b84a">FOUNDING COHORT · 4 WEEKS</text>
+  <text x="${ogW / 2}" y="${cardTop + cardH + 98}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="34" font-weight="700" fill="#f5f5f5">Strength · Training · Human-In · Reviewed</text>
+  <text x="${ogW / 2}" y="${cardTop + cardH + 138}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="22" fill="#9ca3af">Coach-reviewed Excel blocks for India · sthir.in</text>
 </svg>`);
 
 async function writeOgImage(outPath) {

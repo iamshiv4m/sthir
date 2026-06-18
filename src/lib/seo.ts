@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const siteConfig = {
   name: 'Sthir',
-  tagline: 'Strength. Focus. Progress.',
+  tagline: 'Strength · Training · Human-In · Reviewed',
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
@@ -24,7 +24,7 @@ export const defaultOgImage = {
   path: '/opengraph-image.png',
   width: 1200,
   height: 630,
-  alt: 'Sthir — Strength. Focus. Progress. Coach-reviewed programs for India.',
+  alt: 'Sthir — Strength · Training · Human-In · Reviewed. Coach-reviewed programs for India.',
 } as const;
 
 export function absoluteUrl(path = ''): string {

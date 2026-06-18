@@ -9,6 +9,7 @@
     "lint": "eslint",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,mjs,css,md}\" \"scripts/**/*.{mjs,js}\" \"*.{json,md,mjs}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,mjs,css,md}\" \"scripts/**/*.{mjs,js}\" \"*.{json,md,mjs}\"",
+    "og:generate": "node scripts/process-logo.mjs",
     "sync:skills": "node ../.cursor/scripts/sync-sthir-skills.mjs",
     "sync:skills:check": "node ../.cursor/scripts/sync-sthir-skills.mjs --check"
   },

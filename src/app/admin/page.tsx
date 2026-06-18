@@ -29,9 +29,20 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<QueueItem | null>(null);
   const [notes, setNotes] = useState('');
-  const [adminKey, setAdminKey] = useState(
-    () => process.env.NEXT_PUBLIC_ADMIN_API_KEY ?? '',
-  );
+  const [adminKey, setAdminKey] = useState('');
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem('sthir_admin_key');
+    if (saved) setAdminKey(saved);
+  }, []);
+
+  useEffect(() => {
+    if (adminKey) {
+      sessionStorage.setItem('sthir_admin_key', adminKey);
+    } else {
+      sessionStorage.removeItem('sthir_admin_key');
+    }
+  }, [adminKey]);
   const foundingFree = isFoundingFree();
 
   const adminHeaders = useCallback((): HeadersInit => {
@@ -132,8 +143,10 @@ export default function AdminPage() {
 
       <div className="mt-4 flex gap-2">
         <Input
-          placeholder="Admin API key (optional in dev)"
+          type="password"
+          placeholder="Admin API key"
           className="max-w-xs"
+          autoComplete="off"
           value={adminKey}
           onChange={(e) => setAdminKey(e.target.value)}
         />
