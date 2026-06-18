@@ -14,15 +14,22 @@ export function FormField({
   label,
   children,
   className,
+  error,
 }: {
   label?: string;
   children: React.ReactNode;
   className?: string;
+  error?: string;
 }) {
   return (
     <div className={cn('space-y-2', className)}>
       {label ? <Label>{label}</Label> : null}
       {children}
+      {error ? (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

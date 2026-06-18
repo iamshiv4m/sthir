@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { isFoundingFree, FOUNDING_COHORT_SIZE } from '@/lib/founding';
+import { validateWaitlistForm } from '@/lib/intake-validation';
+import { firstError, type FieldErrors } from '@/lib/form-validation';
 
 export default function WaitlistForm() {
   const foundingFree = isFoundingFree();
@@ -44,9 +46,27 @@ export default function WaitlistForm() {
     mock?: boolean;
   } | null>(null);
   const [message, setMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  function clearFieldError(field: string) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const errors = validateWaitlistForm(form);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setStatus('error');
+      setMessage(firstError(errors) ?? 'Please fix the errors below.');
+      return;
+    }
+    setFieldErrors({});
     setStatus('loading');
     try {
       const res = await fetch(apiUrl('/waitlist'), {
@@ -198,32 +218,48 @@ export default function WaitlistForm() {
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-4">
-        <FormField label="Name">
+        <FormField label="Name" error={fieldErrors.name}>
           <Input
             required
+            aria-invalid={!!fieldErrors.name}
+            className={cn(fieldErrors.name && 'border-destructive')}
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, name: e.target.value });
+              clearFieldError('name');
+            }}
           />
         </FormField>
-        <FormField label="Email">
+        <FormField label="Email" error={fieldErrors.email}>
           <Input
             required
             type="email"
+            aria-invalid={!!fieldErrors.email}
+            className={cn(fieldErrors.email && 'border-destructive')}
             value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, email: e.target.value });
+              clearFieldError('email');
+            }}
           />
         </FormField>
-        <FormField label="City">
+        <FormField label="City (optional)" error={fieldErrors.city}>
           <Input
             placeholder="Delhi, Mumbai, Bangalore..."
             value={form.city}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            onChange={(e) => {
+              setForm({ ...form, city: e.target.value });
+              clearFieldError('city');
+            }}
           />
         </FormField>
-        <FormField label="Primary goal">
+        <FormField label="Primary goal" error={fieldErrors.goal}>
           <FormSelect
             value={form.goal}
-            onValueChange={(goal) => setForm({ ...form, goal })}
+            onValueChange={(goal) => {
+              setForm({ ...form, goal });
+              clearFieldError('goal');
+            }}
             options={GOALS.map((g) => ({ value: g.id, label: g.label }))}
             placeholder="Choose your goal"
           />

@@ -38,6 +38,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import {
+  validateIntakeStep,
+  validateAllIntakeSteps,
+} from '@/lib/intake-validation';
+import { firstError, type FieldErrors } from '@/lib/form-validation';
 
 const GENDER_OPTIONS = [
   { value: 'male', label: 'Male' },
@@ -93,45 +99,15 @@ type FormState = {
   referralCode: string;
 };
 
-function isValidPhone(phone: string): boolean {
-  const digits = phone.replace(/\D/g, '');
-  return digits.length >= 10 && digits.length <= 13;
+function inputClass(hasError?: boolean) {
+  return cn(hasError && 'border-destructive aria-invalid:border-destructive');
 }
 
-function validateStep(step: number, form: FormState): string | null {
-  switch (step) {
-    case 0:
-      if (!form.goal) return 'Please select a goal.';
-      return null;
-    case 1:
-      if (!form.name.trim()) return 'Full name is required.';
-      if (!form.email.trim() || !form.email.includes('@'))
-        return 'Valid email is required.';
-      if (!isValidPhone(form.phone))
-        return 'WhatsApp number is required (at least 10 digits).';
-      if (form.age < 16 || form.age > 70)
-        return 'Age must be between 16 and 70.';
-      if (form.bodyweightKg < 40 || form.bodyweightKg > 200)
-        return 'Enter a realistic bodyweight.';
-      return null;
-    case 2:
-      if (form.squat1rm < 20 || form.bench1rm < 20 || form.deadlift1rm < 20) {
-        return 'Enter realistic 1RM values (minimum 20 kg each).';
-      }
-      return null;
-    case 3:
-      if (form.trainingDays < 2 || form.trainingDays > 6) {
-        return 'Training days must be between 2 and 6 per week.';
-      }
-      if (isMeetFocusedGoal(form.goal) && !form.meetDate) {
-        return 'Meet date is required for meet prep goals — we need it to plan your peak.';
-      }
-      return null;
-    case 4:
-      return null;
-    default:
-      return null;
+function firstStepWithErrors(form: FormState): number {
+  for (let s = 0; s <= 5; s += 1) {
+    if (Object.keys(validateIntakeStep(s, form)).length > 0) return s;
   }
+  return 0;
 }
 
 export default function IntakeForm() {
@@ -140,6 +116,7 @@ export default function IntakeForm() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState<FormState>({
     goal: params.get('goal') ?? 'first_meet',
     email: '',
@@ -179,19 +156,36 @@ export default function IntakeForm() {
     }));
   }
 
+  function clearFieldError(field: string) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function applyStepErrors(errors: FieldErrors) {
+    setFieldErrors(errors);
+    setError(firstError(errors) ?? '');
+  }
+
   function goNext() {
-    const err = validateStep(step, form);
-    if (err) {
-      setError(err);
+    const errors = validateIntakeStep(step, form);
+    if (Object.keys(errors).length > 0) {
+      applyStepErrors(errors);
       return;
     }
+    setFieldErrors({});
     setError('');
     setStep((s) => s + 1);
   }
 
   async function submit() {
-    if (!form.disclaimerAccepted) {
-      setError('Please accept the training disclaimer to continue.');
+    const errors = validateAllIntakeSteps(form);
+    if (Object.keys(errors).length > 0) {
+      applyStepErrors(errors);
+      setStep(firstStepWithErrors(form));
       return;
     }
     setLoading(true);
@@ -256,10 +250,13 @@ export default function IntakeForm() {
         <div className="mt-8 space-y-4">
           {step === 0 && (
             <>
-              <FormField label="Primary goal">
+              <FormField label="Primary goal" error={fieldErrors.goal}>
                 <FormSelect
                   value={form.goal}
-                  onValueChange={(goal) => setForm({ ...form, goal })}
+                  onValueChange={(goal) => {
+                    setForm({ ...form, goal });
+                    clearFieldError('goal');
+                  }}
                   options={GOALS.map((g) => ({ value: g.id, label: g.label }))}
                   placeholder="Choose your goal"
                 />
@@ -278,75 +275,117 @@ export default function IntakeForm() {
 
           {step === 1 && (
             <>
-              <FormField label="Full name">
+              <FormField label="Full name" error={fieldErrors.name}>
                 <Input
                   required
+                  aria-invalid={!!fieldErrors.name}
+                  className={inputClass(!!fieldErrors.name)}
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, name: e.target.value });
+                    clearFieldError('name');
+                  }}
                 />
               </FormField>
-              <FormField label="Email">
+              <FormField label="Email" error={fieldErrors.email}>
                 <Input
                   required
                   type="email"
+                  aria-invalid={!!fieldErrors.email}
+                  className={inputClass(!!fieldErrors.email)}
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, email: e.target.value });
+                    clearFieldError('email');
+                  }}
                 />
               </FormField>
-              <FormField label="WhatsApp number">
+              <FormField label="WhatsApp number" error={fieldErrors.phone}>
                 <Input
                   required
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
+                  aria-invalid={!!fieldErrors.phone}
+                  className={inputClass(!!fieldErrors.phone)}
                   placeholder="10-digit number for program delivery"
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  onChange={(e) => {
+                    setForm({ ...form, phone: e.target.value });
+                    clearFieldError('phone');
+                  }}
                 />
               </FormField>
               <div className="grid grid-cols-2 gap-4">
-                <FormField label="Age">
+                <FormField label="Age" error={fieldErrors.age}>
                   <Input
+                    required
                     type="number"
+                    min={16}
+                    max={70}
+                    aria-invalid={!!fieldErrors.age}
+                    className={inputClass(!!fieldErrors.age)}
                     value={form.age}
-                    onChange={(e) => setForm({ ...form, age: +e.target.value })}
+                    onChange={(e) => {
+                      setForm({ ...form, age: +e.target.value });
+                      clearFieldError('age');
+                    }}
                   />
                 </FormField>
-                <FormField label="Gender">
+                <FormField label="Gender" error={fieldErrors.gender}>
                   <FormSelect
                     value={form.gender}
-                    onValueChange={(gender) => setForm({ ...form, gender })}
+                    onValueChange={(gender) => {
+                      setForm({ ...form, gender });
+                      clearFieldError('gender');
+                    }}
                     options={[...GENDER_OPTIONS]}
                     placeholder="Select gender"
                   />
                 </FormField>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <FormField label="Height (cm)">
+                <FormField label="Height (cm)" error={fieldErrors.heightCm}>
                   <Input
+                    required
                     type="number"
+                    min={120}
+                    max={230}
+                    aria-invalid={!!fieldErrors.heightCm}
+                    className={inputClass(!!fieldErrors.heightCm)}
                     value={form.heightCm}
-                    onChange={(e) =>
-                      setForm({ ...form, heightCm: +e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, heightCm: +e.target.value });
+                      clearFieldError('heightCm');
+                    }}
                   />
                 </FormField>
-                <FormField label="Bodyweight (kg)">
+                <FormField
+                  label="Bodyweight (kg)"
+                  error={fieldErrors.bodyweightKg}
+                >
                   <Input
+                    required
                     type="number"
+                    min={40}
+                    max={200}
+                    aria-invalid={!!fieldErrors.bodyweightKg}
+                    className={inputClass(!!fieldErrors.bodyweightKg)}
                     value={form.bodyweightKg}
-                    onChange={(e) =>
-                      setForm({ ...form, bodyweightKg: +e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, bodyweightKg: +e.target.value });
+                      clearFieldError('bodyweightKg');
+                    }}
                   />
                 </FormField>
               </div>
-              <FormField label="Federation">
+              <FormField label="Federation" error={fieldErrors.federation}>
                 <FormSelect
                   value={form.federation}
-                  onValueChange={(federation) =>
-                    setForm({ ...form, federation })
-                  }
+                  onValueChange={(federation) => {
+                    setForm({ ...form, federation });
+                    clearFieldError('federation');
+                  }}
                   options={FEDERATIONS.map((f) => ({
                     value: f.id,
                     label: f.label,
@@ -364,43 +403,65 @@ export default function IntakeForm() {
           {step === 2 && (
             <>
               <div className="grid grid-cols-3 gap-4">
-                <FormField label="Squat 1RM (kg)">
+                <FormField label="Squat 1RM (kg)" error={fieldErrors.squat1rm}>
                   <Input
+                    required
                     type="number"
+                    min={20}
+                    max={500}
+                    aria-invalid={!!fieldErrors.squat1rm}
+                    className={inputClass(!!fieldErrors.squat1rm)}
                     value={form.squat1rm}
-                    onChange={(e) =>
-                      setForm({ ...form, squat1rm: +e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, squat1rm: +e.target.value });
+                      clearFieldError('squat1rm');
+                    }}
                   />
                 </FormField>
-                <FormField label="Bench 1RM (kg)">
+                <FormField label="Bench 1RM (kg)" error={fieldErrors.bench1rm}>
                   <Input
+                    required
                     type="number"
+                    min={20}
+                    max={350}
+                    aria-invalid={!!fieldErrors.bench1rm}
+                    className={inputClass(!!fieldErrors.bench1rm)}
                     value={form.bench1rm}
-                    onChange={(e) =>
-                      setForm({ ...form, bench1rm: +e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, bench1rm: +e.target.value });
+                      clearFieldError('bench1rm');
+                    }}
                   />
                 </FormField>
-                <FormField label="Deadlift 1RM (kg)">
+                <FormField
+                  label="Deadlift 1RM (kg)"
+                  error={fieldErrors.deadlift1rm}
+                >
                   <Input
+                    required
                     type="number"
+                    min={20}
+                    max={500}
+                    aria-invalid={!!fieldErrors.deadlift1rm}
+                    className={inputClass(!!fieldErrors.deadlift1rm)}
                     value={form.deadlift1rm}
-                    onChange={(e) =>
-                      setForm({ ...form, deadlift1rm: +e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, deadlift1rm: +e.target.value });
+                      clearFieldError('deadlift1rm');
+                    }}
                   />
                 </FormField>
               </div>
               <p className="text-sm text-muted-foreground">
                 Total: {form.squat1rm + form.bench1rm + form.deadlift1rm} kg
               </p>
-              <FormField label="Experience">
+              <FormField label="Experience" error={fieldErrors.experience}>
                 <FormSelect
                   value={form.experience}
-                  onValueChange={(experience) =>
-                    setForm({ ...form, experience })
-                  }
+                  onValueChange={(experience) => {
+                    setForm({ ...form, experience });
+                    clearFieldError('experience');
+                  }}
                   options={EXPERIENCE_LEVELS.map((e) => ({
                     value: e.id,
                     label: e.label,
@@ -413,23 +474,34 @@ export default function IntakeForm() {
 
           {step === 3 && (
             <>
-              <FormField label="Training days per week">
+              <FormField
+                label="Training days per week"
+                error={fieldErrors.trainingDays}
+              >
                 <Input
+                  required
                   type="number"
                   min={2}
                   max={6}
+                  aria-invalid={!!fieldErrors.trainingDays}
+                  className={inputClass(!!fieldErrors.trainingDays)}
                   value={form.trainingDays}
-                  onChange={(e) =>
-                    setForm({ ...form, trainingDays: +e.target.value })
-                  }
+                  onChange={(e) => {
+                    setForm({ ...form, trainingDays: +e.target.value });
+                    clearFieldError('trainingDays');
+                  }}
                 />
               </FormField>
-              <FormField label="Training style">
+              <FormField
+                label="Training style"
+                error={fieldErrors.trainingStyle}
+              >
                 <FormSelect
                   value={form.trainingStyle}
-                  onValueChange={(trainingStyle) =>
-                    setForm({ ...form, trainingStyle })
-                  }
+                  onValueChange={(trainingStyle) => {
+                    setForm({ ...form, trainingStyle });
+                    clearFieldError('trainingStyle');
+                  }}
                   options={TRAINING_STYLES.map((t) => ({
                     value: t.id,
                     label: t.label,
@@ -437,10 +509,13 @@ export default function IntakeForm() {
                   placeholder="Select training style"
                 />
               </FormField>
-              <FormField label="Gym type">
+              <FormField label="Gym type" error={fieldErrors.gymType}>
                 <FormSelect
                   value={form.gymType}
-                  onValueChange={(gymType) => setForm({ ...form, gymType })}
+                  onValueChange={(gymType) => {
+                    setForm({ ...form, gymType });
+                    clearFieldError('gymType');
+                  }}
                   options={GYM_TYPES.map((g) => ({
                     value: g.id,
                     label: g.label,
@@ -450,13 +525,19 @@ export default function IntakeForm() {
               </FormField>
               <FormField
                 label={meetFocused ? 'Meet date' : 'Meet date (optional)'}
+                error={fieldErrors.meetDate}
               >
                 <Input
+                  required={meetFocused}
                   type="date"
+                  min={new Date().toISOString().slice(0, 10)}
+                  aria-invalid={!!fieldErrors.meetDate}
+                  className={inputClass(!!fieldErrors.meetDate)}
                   value={form.meetDate}
-                  onChange={(e) =>
-                    setForm({ ...form, meetDate: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setForm({ ...form, meetDate: e.target.value });
+                    clearFieldError('meetDate');
+                  }}
                 />
                 {meetFocused && (
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -465,7 +546,10 @@ export default function IntakeForm() {
                   </p>
                 )}
               </FormField>
-              <FormField label="Equipment available">
+              <FormField
+                label="Equipment available"
+                error={fieldErrors.equipment}
+              >
                 <div className="flex flex-wrap gap-3">
                   {Object.entries(form.equipment).map(([key, val]) => (
                     <label
@@ -474,15 +558,16 @@ export default function IntakeForm() {
                     >
                       <Checkbox
                         checked={val}
-                        onCheckedChange={(checked) =>
+                        onCheckedChange={(checked) => {
                           setForm({
                             ...form,
                             equipment: {
                               ...form.equipment,
                               [key]: checked === true,
                             },
-                          })
-                        }
+                          });
+                          clearFieldError('equipment');
+                        }}
                       />
                       {EQUIPMENT_LABELS[key] ?? key}
                     </label>
@@ -494,7 +579,10 @@ export default function IntakeForm() {
 
           {step === 4 && (
             <>
-              <FormField label="Injuries / limitations">
+              <FormField
+                label="Injuries / limitations"
+                error={fieldErrors.injuries}
+              >
                 <div className="flex flex-wrap gap-2">
                   {INJURY_OPTIONS.map((inj) => (
                     <Badge
@@ -503,7 +591,10 @@ export default function IntakeForm() {
                         form.injuries.includes(inj) ? 'default' : 'outline'
                       }
                       className="min-h-9 cursor-pointer px-3 py-1.5 text-sm"
-                      onClick={() => toggleInjury(inj)}
+                      onClick={() => {
+                        toggleInjury(inj);
+                        clearFieldError('injuries');
+                      }}
                     >
                       {inj}
                     </Badge>
@@ -601,13 +692,21 @@ export default function IntakeForm() {
                   </p>
                 </CardContent>
               </Card>
-              <div className="flex items-start gap-3 rounded-lg border border-border p-4">
+              <div
+                className={cn(
+                  'flex items-start gap-3 rounded-lg border p-4',
+                  fieldErrors.disclaimerAccepted
+                    ? 'border-destructive'
+                    : 'border-border',
+                )}
+              >
                 <Checkbox
                   id="disclaimer"
                   checked={form.disclaimerAccepted}
-                  onCheckedChange={(checked) =>
-                    setForm({ ...form, disclaimerAccepted: checked === true })
-                  }
+                  onCheckedChange={(checked) => {
+                    setForm({ ...form, disclaimerAccepted: checked === true });
+                    clearFieldError('disclaimerAccepted');
+                  }}
                 />
                 <Label
                   htmlFor="disclaimer"
@@ -630,6 +729,11 @@ export default function IntakeForm() {
                   .
                 </Label>
               </div>
+              {fieldErrors.disclaimerAccepted && (
+                <p className="text-sm text-destructive" role="alert">
+                  {fieldErrors.disclaimerAccepted}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -648,6 +752,7 @@ export default function IntakeForm() {
             className="min-h-11 px-5"
             onClick={() => {
               setError('');
+              setFieldErrors({});
               setStep((s) => s - 1);
             }}
           >
