@@ -177,9 +177,20 @@ async function writeOgImage(outPath) {
 
 await writeOgImage(join(brandDir, 'sthir-og.png'));
 
-// App icons from mark
+// App icons from mark — dark background so WhatsApp fallback isn't white
+const iconBg = { r: 18, g: 18, b: 22, alpha: 1 };
 const markBuf = await sharp(join(brandDir, 'sthir-logo-mark.png'))
-  .resize(512)
+  .resize(420, 420, {
+    fit: 'contain',
+    background: iconBg,
+  })
+  .extend({
+    top: 46,
+    bottom: 46,
+    left: 46,
+    right: 46,
+    background: iconBg,
+  })
   .png()
   .toBuffer();
 const appDir = join(__dirname, '../src/app');

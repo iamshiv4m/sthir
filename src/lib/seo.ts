@@ -1,12 +1,31 @@
 import type { Metadata } from 'next';
 
+/** Canonical site URL for SEO/OG — ignores stale *.vercel.app env when VERCEL_URL is set. */
+export function getSiteUrl(): string {
+  const fromEnv = (
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.NEXT_PUBLIC_APP_URL
+  )
+    ?.trim()
+    .replace(/\/$/, '');
+
+  // Custom domain (sthir.in) wins over Vercel preview URLs
+  if (fromEnv && !fromEnv.includes('vercel.app')) {
+    return fromEnv;
+  }
+
+  const vercelHost = process.env.VERCEL_URL?.replace(/^https?:\/\//, '');
+  if (vercelHost) {
+    return `https://${vercelHost}`;
+  }
+
+  return fromEnv ?? 'https://sthir.in';
+}
+
 export const siteConfig = {
   name: 'Sthir',
   tagline: 'Strength · Training · Human-In · Reviewed',
-  url:
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    'https://sthir.in',
+  url: getSiteUrl(),
   description:
     'Coach-reviewed strength & powerlifting programs delivered in 12 hours. Meet prep, powerbuilding, and general strength — built for Indian athletes.',
   keywords: [
@@ -63,10 +82,11 @@ export function pageMetadata({
       description,
       images: [
         {
-          url: defaultOgImage.path,
+          url: absoluteUrl(defaultOgImage.path),
           width: defaultOgImage.width,
           height: defaultOgImage.height,
           alt: defaultOgImage.alt,
+          type: 'image/png',
         },
       ],
     },
@@ -74,7 +94,7 @@ export function pageMetadata({
       card: 'summary_large_image',
       title: `${title} | ${siteConfig.name}`,
       description,
-      images: [defaultOgImage.path],
+      images: [absoluteUrl(defaultOgImage.path)],
     },
   };
 }
@@ -102,10 +122,11 @@ export const rootMetadata: Metadata = {
     description: siteConfig.description,
     images: [
       {
-        url: defaultOgImage.path,
+        url: absoluteUrl(defaultOgImage.path),
         width: defaultOgImage.width,
         height: defaultOgImage.height,
         alt: defaultOgImage.alt,
+        type: 'image/png',
       },
     ],
   },
@@ -113,7 +134,7 @@ export const rootMetadata: Metadata = {
     card: 'summary_large_image',
     title: `${siteConfig.name} — ${siteConfig.tagline}`,
     description: 'Coach-reviewed strength programs for India.',
-    images: [defaultOgImage.path],
+    images: [absoluteUrl(defaultOgImage.path)],
   },
 };
 
