@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 import { apiUrl } from '@/lib/api';
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { isFoundingFree, FOUNDING_COHORT_SIZE } from '@/lib/founding';
 import { validateWaitlistForm } from '@/lib/intake-validation';
 import { firstError, type FieldErrors } from '@/lib/form-validation';
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics';
 
 export default function WaitlistForm() {
   const foundingFree = isFoundingFree();
@@ -48,6 +49,10 @@ export default function WaitlistForm() {
   const [message, setMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.waitlistStarted, { goal: form.goal });
+  }, []);
+
   function clearFieldError(field: string) {
     setFieldErrors((prev) => {
       if (!prev[field]) return prev;
@@ -61,6 +66,9 @@ export default function WaitlistForm() {
     e.preventDefault();
     const errors = validateWaitlistForm(form);
     if (Object.keys(errors).length > 0) {
+      track(ANALYTICS_EVENTS.waitlistValidationFailed, {
+        fields: Object.keys(errors),
+      });
       setFieldErrors(errors);
       setStatus('error');
       setMessage(firstError(errors) ?? 'Please fix the errors below.');
@@ -82,8 +90,16 @@ export default function WaitlistForm() {
             : typeof data.error === 'string'
               ? data.error
               : 'Failed';
+        track(ANALYTICS_EVENTS.waitlistSubmitFailed, {
+          goal: form.goal,
+          error: errMsg.slice(0, 200),
+        });
         throw new Error(errMsg);
       }
+      track(ANALYTICS_EVENTS.waitlistSubmitted, {
+        goal: form.goal,
+        waitlistId: data.id,
+      });
       setStatus('done');
       setResult({ id: data.id, orderId: data.orderId, mock: data.mock });
       setMessage(

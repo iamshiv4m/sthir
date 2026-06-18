@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiUrl } from '@/lib/api';
 import {
@@ -44,6 +44,7 @@ import {
   validateAllIntakeSteps,
 } from '@/lib/intake-validation';
 import { firstError, type FieldErrors } from '@/lib/form-validation';
+import { ANALYTICS_EVENTS, track } from '@/lib/analytics';
 
 const GENDER_OPTIONS = [
   { value: 'male', label: 'Male' },
@@ -147,6 +148,18 @@ export default function IntakeForm() {
 
   const meetFocused = isMeetFocusedGoal(form.goal);
 
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.intakeStarted, { goal: form.goal });
+  }, []);
+
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.intakeStepViewed, {
+      step,
+      stepName: STEPS[step],
+      goal: form.goal,
+    });
+  }, [step, form.goal]);
+
   function toggleInjury(injury: string) {
     setForm((f) => ({
       ...f,
@@ -173,9 +186,19 @@ export default function IntakeForm() {
   function goNext() {
     const errors = validateIntakeStep(step, form);
     if (Object.keys(errors).length > 0) {
+      track(ANALYTICS_EVENTS.intakeValidationFailed, {
+        step,
+        stepName: STEPS[step],
+        fields: Object.keys(errors),
+      });
       applyStepErrors(errors);
       return;
     }
+    track(ANALYTICS_EVENTS.intakeStepCompleted, {
+      step,
+      stepName: STEPS[step],
+      goal: form.goal,
+    });
     setFieldErrors({});
     setError('');
     setStep((s) => s + 1);
@@ -184,6 +207,12 @@ export default function IntakeForm() {
   async function submit() {
     const errors = validateAllIntakeSteps(form);
     if (Object.keys(errors).length > 0) {
+      track(ANALYTICS_EVENTS.intakeValidationFailed, {
+        step,
+        stepName: STEPS[step],
+        fields: Object.keys(errors),
+        phase: 'submit',
+      });
       applyStepErrors(errors);
       setStep(firstStepWithErrors(form));
       return;
@@ -204,8 +233,18 @@ export default function IntakeForm() {
             : typeof data.error === 'string'
               ? data.error
               : JSON.stringify(data.error ?? data);
+        track(ANALYTICS_EVENTS.intakeSubmitFailed, {
+          goal: form.goal,
+          error: message.slice(0, 200),
+        });
         throw new Error(message);
       }
+      track(ANALYTICS_EVENTS.intakeSubmitted, {
+        goal: form.goal,
+        intakeId: data.id,
+        foundingFree: data.foundingFree,
+        freeSlot: data.freeSlot,
+      });
       router.push(`/intake/success?id=${data.id}&mock=${data.mock}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Submission failed');

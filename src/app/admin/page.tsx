@@ -24,9 +24,28 @@ type QueueItem = {
   };
 };
 
+type FunnelSummary = {
+  totals: {
+    intakeStarted: number;
+    intakeSubmitted: number;
+    intakeSubmitFailed: number;
+    waitlistStarted: number;
+    waitlistSubmitted: number;
+    conversionRate: number | null;
+  };
+  intakeSteps: Array<{
+    step: number;
+    name: string;
+    viewed: number;
+    completed: number;
+    validationFailed: number;
+  }>;
+};
+
 export default function AdminPage() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [stats, setStats] = useState<Record<string, number>>({});
+  const [funnel, setFunnel] = useState<FunnelSummary | null>(null);
   const [selected, setSelected] = useState<QueueItem | null>(null);
   const [notes, setNotes] = useState('');
   const [adminKey, setAdminKey] = useState('');
@@ -50,26 +69,39 @@ export default function AdminPage() {
   }, [adminKey]);
 
   const load = useCallback(async () => {
-    const res = await fetch(apiUrl('/admin/queue'), {
-      headers: adminHeaders(),
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    setQueue(data.queue);
-    setStats(data.stats);
+    const headers = adminHeaders();
+    const [queueRes, funnelRes] = await Promise.all([
+      fetch(apiUrl('/admin/queue'), { headers }),
+      fetch(apiUrl('/admin/funnel'), { headers }),
+    ]);
+    if (queueRes.ok) {
+      const data = await queueRes.json();
+      setQueue(data.queue);
+      setStats(data.stats);
+    }
+    if (funnelRes.ok) {
+      setFunnel(await funnelRes.json());
+    }
   }, [adminHeaders]);
 
   useEffect(() => {
     let active = true;
 
     async function refresh() {
-      const res = await fetch(apiUrl('/admin/queue'), {
-        headers: adminHeaders(),
-      });
-      if (!res.ok || !active) return;
-      const data = await res.json();
-      setQueue(data.queue);
-      setStats(data.stats);
+      const headers = adminHeaders();
+      const [queueRes, funnelRes] = await Promise.all([
+        fetch(apiUrl('/admin/queue'), { headers }),
+        fetch(apiUrl('/admin/funnel'), { headers }),
+      ]);
+      if (!active) return;
+      if (queueRes.ok) {
+        const data = await queueRes.json();
+        setQueue(data.queue);
+        setStats(data.stats);
+      }
+      if (funnelRes.ok) {
+        setFunnel(await funnelRes.json());
+      }
     }
 
     void refresh();
@@ -167,6 +199,50 @@ export default function AdminPage() {
           </Card>
         ))}
       </div>
+
+      {funnel && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="text-base">Form funnel</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Where users drop off — intake started {funnel.totals.intakeStarted}
+              , submitted {funnel.totals.intakeSubmitted}
+              {funnel.totals.conversionRate != null &&
+                ` (${funnel.totals.conversionRate}% conversion)`}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[480px] text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 pr-4 font-medium">Step</th>
+                    <th className="pb-2 pr-4 font-medium">Viewed</th>
+                    <th className="pb-2 pr-4 font-medium">Completed</th>
+                    <th className="pb-2 font-medium">Validation errors</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {funnel.intakeSteps.map((row) => (
+                    <tr key={row.step} className="border-b border-border/50">
+                      <td className="py-2 pr-4">
+                        {row.step + 1}. {row.name}
+                      </td>
+                      <td className="py-2 pr-4">{row.viewed}</td>
+                      <td className="py-2 pr-4">{row.completed}</td>
+                      <td className="py-2">{row.validationFailed}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Waitlist: {funnel.totals.waitlistStarted} started →{' '}
+              {funnel.totals.waitlistSubmitted} submitted
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <div className="space-y-3">
