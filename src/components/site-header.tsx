@@ -8,10 +8,7 @@ import { SthirMark } from '@/components/brand/sthir-logo';
 import { cn } from '@/lib/utils';
 import { isFoundingFree } from '@/lib/founding';
 
-const navLinks = [
-  { href: '/partners', label: 'Gyms' },
-  { href: '/waitlist', label: 'Waitlist' },
-];
+const navLinks = [{ href: '/waitlist', label: 'Waitlist' }];
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);

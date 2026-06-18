@@ -10,7 +10,6 @@ const legalLinks = [
 const platformLinks = [
   { href: '/intake', label: 'Get your block' },
   { href: '/waitlist', label: 'Waitlist' },
-  { href: '/partners', label: 'Gym partners' },
 ];
 
 function FooterLinkGroup({
