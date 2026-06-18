@@ -42,10 +42,22 @@ type FunnelSummary = {
   }>;
 };
 
+type AbandonedLead = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  goal: string;
+  stepReached: number;
+  stepName: string;
+  updatedAt: string;
+};
+
 export default function AdminPage() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [stats, setStats] = useState<Record<string, number>>({});
   const [funnel, setFunnel] = useState<FunnelSummary | null>(null);
+  const [leads, setLeads] = useState<AbandonedLead[]>([]);
   const [selected, setSelected] = useState<QueueItem | null>(null);
   const [notes, setNotes] = useState('');
   const [adminKey, setAdminKey] = useState('');
@@ -70,9 +82,10 @@ export default function AdminPage() {
 
   const load = useCallback(async () => {
     const headers = adminHeaders();
-    const [queueRes, funnelRes] = await Promise.all([
+    const [queueRes, funnelRes, leadsRes] = await Promise.all([
       fetch(apiUrl('/admin/queue'), { headers }),
       fetch(apiUrl('/admin/funnel'), { headers }),
+      fetch(apiUrl('/admin/leads'), { headers }),
     ]);
     if (queueRes.ok) {
       const data = await queueRes.json();
@@ -82,6 +95,10 @@ export default function AdminPage() {
     if (funnelRes.ok) {
       setFunnel(await funnelRes.json());
     }
+    if (leadsRes.ok) {
+      const data = await leadsRes.json();
+      setLeads(data.leads ?? []);
+    }
   }, [adminHeaders]);
 
   useEffect(() => {
@@ -89,9 +106,10 @@ export default function AdminPage() {
 
     async function refresh() {
       const headers = adminHeaders();
-      const [queueRes, funnelRes] = await Promise.all([
+      const [queueRes, funnelRes, leadsRes] = await Promise.all([
         fetch(apiUrl('/admin/queue'), { headers }),
         fetch(apiUrl('/admin/funnel'), { headers }),
+        fetch(apiUrl('/admin/leads'), { headers }),
       ]);
       if (!active) return;
       if (queueRes.ok) {
@@ -101,6 +119,10 @@ export default function AdminPage() {
       }
       if (funnelRes.ok) {
         setFunnel(await funnelRes.json());
+      }
+      if (leadsRes.ok) {
+        const data = await leadsRes.json();
+        setLeads(data.leads ?? []);
       }
     }
 
@@ -240,6 +262,73 @@ export default function AdminPage() {
               Waitlist: {funnel.totals.waitlistStarted} started →{' '}
               {funnel.totals.waitlistSubmitted} submitted
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {leads.length > 0 && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="text-base">
+              Abandoned forms ({leads.length})
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Users who entered contact info but did not submit — follow up on
+              WhatsApp
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 pr-4 font-medium">Name</th>
+                    <th className="pb-2 pr-4 font-medium">Phone</th>
+                    <th className="pb-2 pr-4 font-medium">Email</th>
+                    <th className="pb-2 pr-4 font-medium">Stopped at</th>
+                    <th className="pb-2 font-medium">Updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leads.map((lead) => {
+                    const digits = lead.phone.replace(/\D/g, '');
+                    const wa =
+                      digits.length >= 10
+                        ? `https://wa.me/91${digits.slice(-10)}`
+                        : null;
+                    return (
+                      <tr
+                        key={lead.id}
+                        className="border-b border-border/50"
+                      >
+                        <td className="py-2 pr-4 font-medium">{lead.name}</td>
+                        <td className="py-2 pr-4">
+                          {wa ? (
+                            <a
+                              href={wa}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary underline-offset-2 hover:underline"
+                            >
+                              {lead.phone}
+                            </a>
+                          ) : (
+                            lead.phone
+                          )}
+                        </td>
+                        <td className="py-2 pr-4">{lead.email}</td>
+                        <td className="py-2 pr-4">
+                          {lead.stepName} (step {lead.stepReached + 1})
+                        </td>
+                        <td className="py-2 text-muted-foreground">
+                          {new Date(lead.updatedAt).toLocaleString('en-IN')}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       )}

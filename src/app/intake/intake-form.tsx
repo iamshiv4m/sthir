@@ -44,7 +44,8 @@ import {
   validateAllIntakeSteps,
 } from '@/lib/intake-validation';
 import { firstError, type FieldErrors } from '@/lib/form-validation';
-import { ANALYTICS_EVENTS, track } from '@/lib/analytics';
+import { ANALYTICS_EVENTS, track, getSessionId } from '@/lib/analytics';
+import { saveIntakeDraft, flushIntakeDraft } from '@/lib/intake-draft';
 
 const GENDER_OPTIONS = [
   { value: 'male', label: 'Male' },
@@ -160,6 +161,23 @@ export default function IntakeForm() {
     });
   }, [step, form.goal]);
 
+  useEffect(() => {
+    if (step < 1) return;
+    saveIntakeDraft(step, STEPS[step], form);
+  }, [
+    step,
+    form.name,
+    form.email,
+    form.phone,
+    form.age,
+    form.goal,
+    form.experience,
+    form.federation,
+    form.squat1rm,
+    form.bench1rm,
+    form.deadlift1rm,
+  ]);
+
   function toggleInjury(injury: string) {
     setForm((f) => ({
       ...f,
@@ -199,6 +217,7 @@ export default function IntakeForm() {
       stepName: STEPS[step],
       goal: form.goal,
     });
+    flushIntakeDraft(step + 1, STEPS[step + 1] ?? STEPS[step], form);
     setFieldErrors({});
     setError('');
     setStep((s) => s + 1);
@@ -219,11 +238,16 @@ export default function IntakeForm() {
     }
     setLoading(true);
     setError('');
+    flushIntakeDraft(step, STEPS[step], form);
     try {
       const res = await fetch(apiUrl('/intake'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, disclaimerAccepted: true }),
+        body: JSON.stringify({
+          ...form,
+          disclaimerAccepted: true,
+          sessionId: getSessionId(),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -355,6 +379,10 @@ export default function IntakeForm() {
                   }}
                 />
               </FormField>
+              <p className="text-xs text-muted-foreground">
+                We save your progress so we can follow up on WhatsApp if you
+                don&apos;t finish — only for completing your program request.
+              </p>
               <div className="grid grid-cols-2 gap-4">
                 <FormField label="Age" error={fieldErrors.age}>
                   <Input
