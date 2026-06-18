@@ -20,15 +20,12 @@ import { apiUrl } from '@/lib/api';
 import { GOALS, SLA_HOURS } from '@/lib/constants';
 import {
   FOUNDING_COHORT_SIZE,
-  FOUNDING_BLOCK_PRICE_INR,
   foundingCopy,
-  getFoundingPricingTiers,
+  getFoundingOfferCards,
   getMarketCopy,
   hasFoundingFreeSlots,
   isFoundingFree,
 } from '@/lib/founding';
-import { formatInr, getPriceForGoal } from '@/lib/pricing';
-import type { GoalId } from '@/lib/constants';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Card,
@@ -77,7 +74,7 @@ const STEPS = [
     step: '02',
     icon: Dumbbell,
     title: 'We write your block',
-    desc: 'Volume, intensity, and progression — rules engine + coach review. Sheet & PDF in 12h.',
+    desc: 'Volume, intensity, and progression — your coach builds your Excel sheet from your intake. Delivered in 12h.',
     image: LANDING_IMAGES.steps[1],
   },
   {
@@ -89,43 +86,40 @@ const STEPS = [
   },
 ];
 
-type PricingTier = {
+type OfferCard = {
   name: string;
-  price: string;
+  headline: string;
   desc: string;
   featured?: boolean;
   tag?: string;
-  futurePrice?: string;
   comingSoon?: boolean;
   href?: string;
   cta: string;
 };
 
-const PRICING_PAID: PricingTier[] = [
+const OFFER_PAID: OfferCard[] = [
   {
-    name: 'Founding Program',
-    price: '₹499',
-    desc: '8–12 week block for the first 100 athletes',
+    name: 'Training Block',
+    headline: 'Coach-reviewed',
+    desc: 'Personalized strength programming built from your intake',
     featured: true,
-    tag: 'Best value',
-    futurePrice: undefined as string | undefined,
-    cta: 'Get started',
+    tag: 'Apply now',
+    href: '/intake',
+    cta: 'Apply now',
   },
   {
     name: 'Standard Block',
-    price: '₹799',
-    desc: 'Personalized strength programming for any goal',
-    featured: false,
-    futurePrice: undefined as string | undefined,
-    cta: 'Get started',
+    headline: 'Coming soon',
+    desc: '8–12 week strength & powerbuilding programs',
+    comingSoon: true,
+    cta: 'Coming soon',
   },
   {
     name: 'Meet Prep',
-    price: '₹1,499',
-    desc: '12–16 week peak + attempt selection guide',
-    featured: false,
-    futurePrice: undefined as string | undefined,
-    cta: 'Get started',
+    headline: 'Coming soon',
+    desc: '12–16 week meet-focused peak',
+    comingSoon: true,
+    cta: 'Coming soon',
   },
 ];
 
@@ -143,16 +137,16 @@ export function LandingPage() {
   const target = spotStats?.target ?? FOUNDING_COHORT_SIZE;
   const cohortFull =
     claimed != null && !hasFoundingFreeSlots(claimed, target);
-  const pricingTiers: PricingTier[] = foundingFree
-    ? getFoundingPricingTiers(cohortFull)
-    : PRICING_PAID;
-  const pricingDescription =
-    foundingFree && typeof foundingCopy.pricingDescription === 'function'
-      ? foundingCopy.pricingDescription(
-          claimed != null ? Math.max(0, target - claimed) : null,
-        )
-      : typeof marketCopy.pricingDescription === 'string'
-        ? marketCopy.pricingDescription
+  const spotsLeft =
+    claimed != null ? Math.max(0, target - claimed) : null;
+  const offerCards: OfferCard[] = foundingFree
+    ? getFoundingOfferCards(cohortFull, spotsLeft)
+    : OFFER_PAID;
+  const offerDescription =
+    foundingFree && typeof foundingCopy.offerDescription === 'function'
+      ? foundingCopy.offerDescription(spotsLeft)
+      : typeof marketCopy.offerDescription === 'string'
+        ? marketCopy.offerDescription
         : '';
   const canApplyFree =
     foundingFree &&
@@ -237,15 +231,8 @@ export function LandingPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex items-center justify-between pt-0">
-                        <p className="text-sm font-semibold text-primary">
-                          {foundingFree
-                            ? hasFoundingFreeSlots(
-                                spotStats?.count ?? 0,
-                                spotStats?.target ?? FOUNDING_COHORT_SIZE,
-                              ) || spotStats == null
-                              ? 'Free · 4 weeks'
-                              : `₹${FOUNDING_BLOCK_PRICE_INR} · 4 weeks`
-                            : `from ${formatInr(getPriceForGoal(goal.id as GoalId))}`}
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {foundingFree ? '4-week block' : 'Coach-reviewed'}
                         </p>
                         <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
                       </CardContent>
@@ -311,13 +298,13 @@ export function LandingPage() {
       <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
         <Reveal>
           <SectionHeader
-            eyebrow={marketCopy.pricingEyebrow}
-            title={marketCopy.pricingTitle}
-            description={pricingDescription}
+            eyebrow={marketCopy.offerEyebrow}
+            title={marketCopy.offerTitle}
+            description={offerDescription}
           />
         </Reveal>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {pricingTiers.map((tier, i) => (
+          {offerCards.map((tier, i) => (
             <Reveal key={tier.name} delay={i * 70}>
               <div
                 className={cn(
@@ -345,19 +332,14 @@ export function LandingPage() {
                     <CardTitle>{tier.name}</CardTitle>
                     <p
                       className={cn(
-                        'text-4xl font-bold tracking-tight',
+                        'text-xl font-semibold tracking-tight',
                         tier.comingSoon
                           ? 'text-muted-foreground'
                           : 'text-primary',
                       )}
                     >
-                      {tier.price}
+                      {tier.headline}
                     </p>
-                    {tier.futurePrice && (
-                      <p className="text-sm text-muted-foreground line-through">
-                        Then {tier.futurePrice}
-                      </p>
-                    )}
                     <CardDescription>{tier.desc}</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -386,7 +368,7 @@ export function LandingPage() {
         </div>
         {foundingFree && (
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {foundingCopy.futurePriceNote}
+            {foundingCopy.offerFootnote}
           </p>
         )}
       </section>
@@ -410,7 +392,7 @@ export function LandingPage() {
               )}
             >
               <Link
-                href="/intake"
+                href={foundingFree && !canApplyFree ? '/waitlist' : '/intake'}
                 className={cn(
                   buttonVariants({ size: 'lg' }),
                   'h-12 gap-2 px-8 text-base shadow-lg shadow-primary/20',
@@ -419,8 +401,8 @@ export function LandingPage() {
               >
                 {foundingFree
                   ? canApplyFree
-                    ? 'Get free 4-week block'
-                    : `Apply — ₹${FOUNDING_BLOCK_PRICE_INR}`
+                    ? 'Get your 4-week block'
+                    : 'Join waitlist'
                   : 'Start training block'}
                 <ArrowRight className="size-4" />
               </Link>

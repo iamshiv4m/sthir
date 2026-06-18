@@ -4,6 +4,7 @@ export const FOUNDING_COHORT_SIZE = 20;
 /** Free founding offer = one 4-week block only. */
 export const FOUNDING_FREE_WEEKS = 4;
 
+/** Backend-only after free cohort fills — not shown in UI during founding launch. */
 export const FOUNDING_BLOCK_PRICE_INR = 499;
 
 export const FOUNDING_FREE_END_LABEL =
@@ -22,10 +23,10 @@ export function hasFoundingFreeSlots(
 }
 
 export const foundingCopy = {
-  heroBadge: 'Founding cohort · Free 4 weeks',
+  heroBadge: 'Founding cohort · 4 weeks',
   heroSub:
-    'Powerlifting, strength & powerbuilding — personalized for Indian athletes. First 20 athletes get a free 4-week coach-reviewed Excel block. Longer programs coming soon.',
-  primaryCta: 'Get free 4-week block',
+    'Powerlifting, strength & powerbuilding — personalized for Indian athletes. First 20 athletes get a coach-reviewed Excel block built from your intake. Longer programs coming soon.',
+  primaryCta: 'Get your 4-week block',
   /** Shown as text link when free spots remain — not a second equal CTA */
   heroWaitlistLink: 'Not ready? Join waitlist',
   heroWaitlistHint: 'Email updates only — no program until you apply',
@@ -33,38 +34,37 @@ export const foundingCopy = {
   secondaryCta: 'Join waitlist for next cohort',
   intakeSubmit: 'Submit for review',
   intakeReviewLine: (hours: number) =>
-    `Founding cohort — free 4-week block, no payment. Coach-reviewed Excel within ${hours} hours.`,
-  pricingEyebrow: 'Founding cohort',
-  pricingTitle: 'Free 4-week block for founding athletes',
-  pricingDescription: (spotsLeft: number | null) =>
+    `Founding cohort — coach builds your Excel block from this form. Delivered within ${hours} hours after review.`,
+  offerEyebrow: 'Founding cohort',
+  offerTitle: 'What you get',
+  offerDescription: (spotsLeft: number | null) =>
     spotsLeft != null && spotsLeft > 0
-      ? `${spotsLeft} of ${FOUNDING_COHORT_SIZE} free spots left — one coach-reviewed month (4 weeks). Standard & meet-prep blocks coming soon.`
-      : `Free spots filled — founding 4-week block now ₹${FOUNDING_BLOCK_PRICE_INR}. Standard & meet-prep blocks coming soon.`,
-  futurePriceNote:
-    'Longer 8–16 week blocks and meet prep launch after founding cohort.',
+      ? `${spotsLeft} of ${FOUNDING_COHORT_SIZE} founding spots left — one coach-reviewed 4-week Excel block.`
+      : `Founding spots filled — join the waitlist for the next cohort.`,
+  offerFootnote:
+    'Longer 8–16 week blocks and meet prep launch after the founding cohort.',
 } as const;
 
 export const paidCopy = {
   heroBadge: 'Strength sports · India',
   heroSub:
-    'Powerlifting, strength & powerbuilding — personalized for Indian athletes. Sheet + PDF delivered after payment.',
-  primaryCta: 'Get Your Block',
-  secondaryCta: 'Waitlist — ₹99',
-  intakeSubmit: 'Pay & Submit',
-  pricingEyebrow: 'Pricing',
-  pricingTitle: 'Simple, India-first pricing',
-  pricingDescription:
-    'One-time program purchase. No subscriptions. Founding rate for early athletes.',
+    'Powerlifting, strength & powerbuilding — personalized for Indian athletes. Coach-reviewed Excel block delivered after you apply.',
+  primaryCta: 'Get your block',
+  secondaryCta: 'Join waitlist',
+  intakeSubmit: 'Submit for review',
+  offerEyebrow: 'Programs',
+  offerTitle: 'Coach-reviewed blocks',
+  offerDescription:
+    'Personalized strength programming with human review on every block.',
 } as const;
 
 export function getMarketCopy() {
   return isFoundingFree() ? foundingCopy : paidCopy;
 }
 
-export type FoundingPricingTier = {
+export type FoundingOfferCard = {
   name: string;
-  price: string;
-  futurePrice?: string;
+  headline: string;
   desc: string;
   featured?: boolean;
   tag?: string;
@@ -73,33 +73,43 @@ export type FoundingPricingTier = {
   cta: string;
 };
 
-export function getFoundingPricingTiers(
+export function getFoundingOfferCards(
   cohortFull: boolean,
-): FoundingPricingTier[] {
+  spotsLeft: number | null,
+): FoundingOfferCard[] {
   return [
     {
       name: 'Founding Program',
-      price: cohortFull ? `₹${FOUNDING_BLOCK_PRICE_INR}` : 'Free',
-      futurePrice: cohortFull ? undefined : `₹${FOUNDING_BLOCK_PRICE_INR}`,
-      desc: `4-week coach-reviewed Excel block — first ${FOUNDING_COHORT_SIZE} athletes free`,
+      headline:
+        spotsLeft != null && spotsLeft > 0
+          ? `${spotsLeft} spots left`
+          : cohortFull
+            ? 'Cohort full'
+            : 'Limited spots',
+      desc: `4-week coach-reviewed Excel block — first ${FOUNDING_COHORT_SIZE} athletes from intake data`,
       featured: true,
-      tag: cohortFull ? 'Founding rate' : 'Founding cohort',
-      href: '/intake',
-      cta: cohortFull ? `Apply — ₹${FOUNDING_BLOCK_PRICE_INR}` : 'Apply free',
+      tag: 'Founding cohort',
+      href: cohortFull ? '/waitlist' : '/intake',
+      cta: cohortFull ? 'Join waitlist' : 'Apply now',
     },
     {
       name: 'Standard Block',
-      price: 'Coming soon',
+      headline: 'Coming soon',
       desc: '8–12 week strength & powerbuilding programs',
       comingSoon: true,
       cta: 'Coming soon',
     },
     {
       name: 'Meet Prep',
-      price: 'Coming soon',
+      headline: 'Coming soon',
       desc: '12–16 week meet-focused peak',
       comingSoon: true,
       cta: 'Coming soon',
     },
   ];
+}
+
+/** @deprecated Use getFoundingOfferCards — kept for skill sync scripts */
+export function getFoundingPricingTiers(cohortFull: boolean) {
+  return getFoundingOfferCards(cohortFull, cohortFull ? 0 : 1);
 }

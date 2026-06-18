@@ -16,7 +16,7 @@ const navLinks = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const foundingFree = isFoundingFree();
-  const ctaLabel = foundingFree ? 'Free block' : 'Start Block';
+  const ctaLabel = foundingFree ? 'Apply' : 'Start Block';
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">

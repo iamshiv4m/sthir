@@ -9,7 +9,6 @@ import { SLA_HOURS } from '@/lib/constants';
 import {
   getMarketCopy,
   foundingCopy,
-  FOUNDING_BLOCK_PRICE_INR,
   hasFoundingFreeSlots,
 } from '@/lib/founding';
 import { LANDING_IMAGES } from '@/lib/landing-images';
@@ -72,7 +71,7 @@ export function HeroSection({
               )}
             >
               <Link
-                href="/intake"
+                href={canApplyFree ? '/intake' : foundingFree ? '/waitlist' : '/intake'}
                 className={cn(
                   buttonVariants({ size: 'lg' }),
                   'group h-12 gap-2 px-7 text-base shadow-lg shadow-primary/15',
@@ -82,7 +81,7 @@ export function HeroSection({
                 {canApplyFree
                   ? copy.primaryCta
                   : foundingFree
-                    ? `Apply — ₹${FOUNDING_BLOCK_PRICE_INR}`
+                    ? 'Join waitlist'
                     : copy.primaryCta}
                 <ArrowRight className="size-4" />
               </Link>

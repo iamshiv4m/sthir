@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiUrl } from '@/lib/api';
 import {
@@ -21,17 +21,12 @@ import {
   trainingStyleLabel,
   isMeetFocusedGoal,
 } from '@/lib/labels';
-import { formatInr, getPriceForGoal } from '@/lib/pricing';
 import {
   foundingCopy,
   getMarketCopy,
   isFoundingFree,
-  FOUNDING_BLOCK_PRICE_INR,
-  FOUNDING_COHORT_SIZE,
   FOUNDING_FREE_WEEKS,
-  hasFoundingFreeSlots,
 } from '@/lib/founding';
-import type { GoalId } from '@/lib/constants';
 import { FormField, FormSelect } from '@/components/form-field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -98,6 +93,11 @@ type FormState = {
   referralCode: string;
 };
 
+function isValidPhone(phone: string): boolean {
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 13;
+}
+
 function validateStep(step: number, form: FormState): string | null {
   switch (step) {
     case 0:
@@ -107,6 +107,8 @@ function validateStep(step: number, form: FormState): string | null {
       if (!form.name.trim()) return 'Full name is required.';
       if (!form.email.trim() || !form.email.includes('@'))
         return 'Valid email is required.';
+      if (!isValidPhone(form.phone))
+        return 'WhatsApp number is required (at least 10 digits).';
       if (form.age < 16 || form.age > 70)
         return 'Age must be between 16 and 70.';
       if (form.bodyweightKg < 40 || form.bodyweightKg > 200)
@@ -137,7 +139,6 @@ export default function IntakeForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [cohortClaimed, setCohortClaimed] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState<FormState>({
     goal: params.get('goal') ?? 'first_meet',
@@ -222,18 +223,6 @@ export default function IntakeForm() {
   const progress = ((step + 1) / STEPS.length) * 100;
   const foundingFree = isFoundingFree();
   const marketCopy = getMarketCopy();
-  const qualifiesForFree =
-    foundingFree &&
-    (cohortClaimed == null ||
-      hasFoundingFreeSlots(cohortClaimed, FOUNDING_COHORT_SIZE));
-
-  useEffect(() => {
-    if (!foundingFree) return;
-    fetch(apiUrl('/intake/stats'))
-      .then((r) => r.json())
-      .then((data) => setCohortClaimed(data.cohortCount ?? 0))
-      .catch(() => setCohortClaimed(null));
-  }, [foundingFree]);
 
   return (
     <div>
@@ -242,9 +231,7 @@ export default function IntakeForm() {
         <div className="relative mx-auto max-w-2xl px-4 py-10 sm:py-12">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
             {foundingFree
-              ? qualifiesForFree
-                ? 'Founding cohort · Free 4 weeks'
-                : `Founding block · ₹${FOUNDING_BLOCK_PRICE_INR}`
+              ? 'Founding cohort · 4 weeks'
               : 'Program questionnaire'}
           </p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
@@ -253,9 +240,7 @@ export default function IntakeForm() {
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             ~15 minutes ·{' '}
             {foundingFree
-              ? qualifiesForFree
-                ? foundingCopy.intakeReviewLine(SLA_HOURS)
-                : `Founding 4-week block — ₹${FOUNDING_BLOCK_PRICE_INR}. Coach-reviewed Excel within ${SLA_HOURS} hours.`
+              ? foundingCopy.intakeReviewLine(SLA_HOURS)
               : `Coach-reviewed program delivered in ${SLA_HOURS} hours`}
           </p>
         </div>
@@ -279,9 +264,6 @@ export default function IntakeForm() {
                   placeholder="Choose your goal"
                 />
               </FormField>
-              <p className="text-sm font-medium text-primary">
-                Price: {formatInr(getPriceForGoal(form.goal as GoalId))}
-              </p>
               {meetFocused && (
                 <Alert>
                   <AlertDescription>
@@ -311,8 +293,13 @@ export default function IntakeForm() {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
               </FormField>
-              <FormField label="Phone (WhatsApp)">
+              <FormField label="WhatsApp number">
                 <Input
+                  required
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="10-digit number for program delivery"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
@@ -573,6 +560,9 @@ export default function IntakeForm() {
                     <strong>Athlete:</strong> {form.name} ({form.email})
                   </p>
                   <p>
+                    <strong>WhatsApp:</strong> {form.phone}
+                  </p>
+                  <p>
                     <strong>SBD:</strong> {form.squat1rm}/{form.bench1rm}/
                     {form.deadlift1rm} kg
                   </p>
@@ -606,10 +596,8 @@ export default function IntakeForm() {
                   )}
                   <p className="pt-2 font-medium text-primary">
                     {foundingFree
-                      ? qualifiesForFree
-                        ? `Founding cohort — free ${FOUNDING_FREE_WEEKS}-week block · Excel within ${SLA_HOURS}h`
-                        : `Founding block — ₹${FOUNDING_BLOCK_PRICE_INR} · Excel within ${SLA_HOURS}h`
-                      : `${formatInr(getPriceForGoal(form.goal as GoalId))} — delivered within ${SLA_HOURS}h`}
+                      ? `Founding cohort — ${FOUNDING_FREE_WEEKS}-week Excel block · coach review within ${SLA_HOURS}h`
+                      : `Coach-reviewed delivery within ${SLA_HOURS}h`}
                   </p>
                 </CardContent>
               </Card>
@@ -676,11 +664,7 @@ export default function IntakeForm() {
               disabled={loading}
               onClick={submit}
             >
-              {loading
-                ? 'Submitting...'
-                : foundingFree && !qualifiesForFree
-                  ? `Submit — ₹${FOUNDING_BLOCK_PRICE_INR}`
-                  : marketCopy.intakeSubmit}
+              {loading ? 'Submitting...' : marketCopy.intakeSubmit}
             </Button>
           )}
         </div>

@@ -42,7 +42,7 @@ const foundingTimeline = [
   },
   {
     title: 'Coach review',
-    desc: 'A real coach reviews your program — goal, timeline, injuries, and weak points.',
+    desc: 'Your coach reads your intake — goal, maxes, injuries, equipment — and builds your sheet.',
   },
   {
     title: 'Delivery',
@@ -73,7 +73,7 @@ export default async function IntakeSuccessPage({
           {foundingFree
             ? isMock
               ? 'Submission simulated (dev mode). Your program is in the coach review queue.'
-              : `Intake received — no payment required. Coach-reviewed Excel program within ${SLA_HOURS} hours.`
+              : `Intake received. Your coach will build your Excel program — delivered within ${SLA_HOURS} hours after review.`
             : isMock
               ? 'Payment simulated (dev mode). Your program is in the coach review queue.'
               : `Payment received. Your personalized program will be reviewed and delivered within ${SLA_HOURS} hours.`}

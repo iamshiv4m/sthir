@@ -14,7 +14,6 @@ import {
   isFoundingFree,
   FOUNDING_COHORT_SIZE,
   FOUNDING_FREE_WEEKS,
-  FOUNDING_BLOCK_PRICE_INR,
 } from '@/lib/founding';
 
 function getFaqItems() {
@@ -35,8 +34,8 @@ function getFaqItems() {
       ? [
           {
             id: 'why-free',
-            q: 'Why is it free right now?',
-            a: `We're in our founding cohort — first ${FOUNDING_COHORT_SIZE} athletes get a free ${FOUNDING_FREE_WEEKS}-week coach-reviewed block. After that, the founding block is ₹${FOUNDING_BLOCK_PRICE_INR}. Longer standard and meet-prep programs are coming soon.`,
+            q: 'Why is the founding cohort special?',
+            a: `We're onboarding the first ${FOUNDING_COHORT_SIZE} athletes — each gets a ${FOUNDING_FREE_WEEKS}-week coach-reviewed Excel block built from their intake. Limited spots; longer programs come later.`,
           },
         ]
       : []),
@@ -44,15 +43,15 @@ function getFaqItems() {
       id: 'jai',
       q: 'Why not JuggernautAI?',
       a: foundingFree
-        ? 'JAI is excellent but ~₹2,900/month with less India-specific context. Sthir adds a real coach review layer and India meet context — free during founding.'
-        : 'JAI is excellent but ~₹2,900/month with less India-specific context. We are priced for Indian athletes with human review on every program.',
+        ? 'JAI is excellent but subscription-based with less India-specific context. Sthir adds a real coach who reads your intake and builds your sheet — India meet context included.'
+        : 'JAI is excellent but subscription-based with less India-specific context. Sthir adds human review on every program for Indian athletes.',
     },
     {
       id: 'delivery',
       q: 'What do I actually receive?',
       a: foundingFree
-        ? 'A personalized 4-week Excel program — weekly structure, sets, reps, RPE or %, and coach notes. Delivered within 12 hours by email after coach review. Free for the first 20 athletes only.'
-        : 'A personalized Google Sheet plus PDF — weekly structure, sets, reps, RPE or %, and coach notes. Delivered within 12 hours of payment.',
+        ? 'A personalized 4-week Excel program — weekly structure, sets, reps, RPE or %, and coach notes. Your coach builds it from your intake and sends it within 12 hours by email or WhatsApp.'
+        : 'A personalized Excel program — weekly structure, sets, reps, RPE or %, and coach notes. Delivered within 12 hours after coach review.',
     },
     {
       id: 'federations',
@@ -68,7 +67,7 @@ function getFaqItems() {
       id: 'refund',
       q: "What's your refund policy?",
       a: foundingFree
-        ? 'Founding programs are free — no charge. When paid pricing launches, our standard SLA and refund policy applies.'
+        ? 'Founding cohort has no payment step. Our standard SLA and refund policy applies when paid programs launch.'
         : 'Full refund if we miss the 12-hour delivery SLA. After delivery, we offer revisions for mismatches — see the full policy for details.',
       href: foundingFree ? undefined : '/legal/refund',
     },

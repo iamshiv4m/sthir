@@ -10,7 +10,7 @@ export const metadata: Metadata = pageMetadata({
   title: 'Join the Waitlist',
   description: foundingFree
     ? 'Email updates for the next Sthir cohort — no program on waitlist. Apply on intake for your free 4-week block.'
-    : 'Reserve a founding spot for Sthir — coach-reviewed strength programs for India from ₹499.',
+    : 'Join the Sthir waitlist — coach-reviewed strength programs for Indian athletes.',
   path: '/waitlist',
 });
 

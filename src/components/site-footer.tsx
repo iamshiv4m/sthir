@@ -62,7 +62,7 @@ export function SiteFooter() {
               Coach-reviewed strength programs for Indian athletes.
             </p>
             <p className="mt-1 text-xs text-muted-foreground/80">
-              Strength · Focus · Progress
+              Strength · Training · Human-In · Reviewed
             </p>
           </div>
 

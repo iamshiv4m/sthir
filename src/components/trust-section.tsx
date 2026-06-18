@@ -3,29 +3,34 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Layers, UserCheck } from 'lucide-react';
 import { SLA_HOURS } from '@/lib/constants';
+import { isFoundingFree } from '@/lib/founding';
 import { LANDING_IMAGES } from '@/lib/landing-images';
 import { Reveal } from '@/components/landing/reveal';
 import { SectionHeader } from '@/components/landing/section-header';
 
-const proofPoints = [
-  {
-    icon: UserCheck,
-    title: 'Human-reviewed',
-    desc: 'Every program checked by a real coach before delivery — not auto-generated junk.',
-  },
-  {
-    icon: Layers,
-    title: 'Built for your goal',
-    desc: 'Meet prep, strength blocks, powerbuilding, or general SBD — templates match what you picked.',
-  },
-  {
-    icon: Clock,
-    title: `${SLA_HOURS}-hour delivery`,
-    desc: 'Pay → coach review → Google Sheet & PDF. Miss our SLA? Full refund.',
-  },
-];
-
 export function TrustSection() {
+  const foundingFree = isFoundingFree();
+
+  const proofPoints = [
+    {
+      icon: UserCheck,
+      title: 'Human-reviewed',
+      desc: 'Every block checked by a real coach before delivery — not auto-generated junk.',
+    },
+    {
+      icon: Layers,
+      title: 'Built for your goal',
+      desc: 'Meet prep, strength blocks, powerbuilding, or general SBD — built from your intake data.',
+    },
+    {
+      icon: Clock,
+      title: `${SLA_HOURS}-hour delivery`,
+      desc: foundingFree
+        ? 'Intake → coach builds your Excel sheet → WhatsApp or email within 12 hours.'
+        : 'Coach review → personalized program delivered within 12 hours.',
+    },
+  ];
+
   return (
     <section className="border-y border-border bg-muted/20 py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4">

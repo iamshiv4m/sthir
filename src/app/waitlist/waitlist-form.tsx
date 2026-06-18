@@ -70,8 +70,8 @@ export default function WaitlistForm() {
         foundingFree
           ? "You're on the list — we'll email when new cohort spots open."
           : data.mock
-            ? "Spot reserved (dev mode). In production you'd complete ₹99 payment via Razorpay."
-            : 'Complete your ₹99 deposit to lock founding pricing.',
+            ? 'Spot reserved (dev mode). In production you would complete deposit payment.'
+            : 'Complete your deposit to lock your spot.',
       );
     } catch (err) {
       setStatus('error');
@@ -116,7 +116,7 @@ export default function WaitlistForm() {
                   <span className="font-semibold text-primary">2.</span>
                   <p>
                     <strong>Want a program now?</strong> Skip the wait — apply
-                    on intake for a free coach-reviewed block.
+                    on intake for a coach-reviewed block.
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -132,15 +132,15 @@ export default function WaitlistForm() {
                 <div className="flex gap-3">
                   <span className="font-semibold text-primary">1.</span>
                   <p>
-                    <strong>Deposit confirmed</strong> — your ₹99 is fully
-                    refundable until you buy a program.
+                    <strong>Deposit confirmed</strong> — fully refundable
+                    until you buy a program.
                   </p>
                 </div>
                 <div className="flex gap-3">
                   <span className="font-semibold text-primary">2.</span>
                   <p>
-                    <strong>Founding pricing locked</strong> — you get first
-                    access at ₹499 when we open intake slots.
+                    <strong>Early access locked</strong> — first access when
+                    we open intake slots.
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -159,7 +159,7 @@ export default function WaitlistForm() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link href="/intake" className={cn(buttonVariants(), 'text-center')}>
             {foundingFree
-              ? 'Get free program now'
+              ? 'Get program now'
               : 'Skip the wait — get program now'}
           </Link>
           <Link
@@ -190,8 +190,8 @@ export default function WaitlistForm() {
             </CardTitle>
             <CardDescription>
               {foundingFree
-                ? `Want a program now? Apply on intake for a free 4-week block (${FOUNDING_COHORT_SIZE} spots). Waitlist is email updates only — no program.`
-                : `₹99 refundable deposit secures your spot. Limited to ${FOUNDING_COHORT_SIZE} athletes.`}
+                ? `Want a program now? Apply on intake for a coach-reviewed 4-week block (${FOUNDING_COHORT_SIZE} spots). Waitlist is email updates only — no program.`
+                : 'Refundable deposit secures your spot. Limited founding athletes.'}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -244,7 +244,7 @@ export default function WaitlistForm() {
               }
             />
             <Label htmlFor="deposit" className="text-sm text-muted-foreground">
-              Pay ₹99 refundable deposit now
+              Pay refundable deposit now
             </Label>
           </div>
         )}
