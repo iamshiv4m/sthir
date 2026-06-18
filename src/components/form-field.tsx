@@ -47,9 +47,15 @@ export function FormSelect({
   disabled?: boolean;
   className?: string;
 }) {
+  const items = options.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }));
+
   return (
     <Select
       value={value}
+      items={items}
       disabled={disabled}
       onValueChange={(next) => {
         if (next != null) onValueChange(String(next));
