@@ -118,64 +118,62 @@ await trimmed
 
 await trimmed.clone().toFile(join(brandDir, 'sthir-logo.png'));
 
-// OG: 1200×630 dark social card (matches site .dark + hero-glow)
+// OG: 1200×630 — WhatsApp-safe centered layout, full-bleed dark
 const ogW = 1200;
 const ogH = 630;
-const logoForOg = await trimmed
-  .clone()
-  .resize(360, 360, { fit: 'inside' })
+const markForOg = await sharp(join(brandDir, 'sthir-logo-mark.png'))
+  .resize(300, 300, { fit: 'inside' })
   .png()
   .toBuffer();
-const logoMeta = await sharp(logoForOg).metadata();
-const logoW = logoMeta.width ?? 360;
-const logoH = logoMeta.height ?? 360;
-const cardW = logoW + 96;
-const cardH = logoH + 72;
-const cardLeft = Math.floor((ogW - cardW) / 2);
-const cardTop = Math.floor((ogH - cardH) / 2) - 36;
-const logoLeft = cardLeft + Math.floor((cardW - logoW) / 2);
-const logoTop = cardTop + 24;
+const markMeta = await sharp(markForOg).metadata();
+const markW = markMeta.width ?? 300;
+const markH = markMeta.height ?? 300;
+const ogMarkLeft = Math.floor((ogW - markW) / 2);
+const markTop = 72;
 
 const ogTextSvg = Buffer.from(`<svg width="${ogW}" height="${ogH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="heroTop" cx="50%" cy="0%" r="70%">
-      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.22"/>
-      <stop offset="55%" stop-color="#d4a017" stop-opacity="0"/>
+    <radialGradient id="glow" cx="50%" cy="0%" r="85%">
+      <stop offset="0%" stop-color="#e8b84a" stop-opacity="0.28"/>
+      <stop offset="45%" stop-color="#d4a017" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#0c0c10" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="heroRight" cx="92%" cy="18%" r="45%">
-      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.1"/>
-      <stop offset="100%" stop-color="#d4a017" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="heroLeft" cx="8%" cy="62%" r="38%">
-      <stop offset="0%" stop-color="#d4a017" stop-opacity="0.08"/>
-      <stop offset="100%" stop-color="#d4a017" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="topLine" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#d4a017" stop-opacity="0"/>
-      <stop offset="50%" stop-color="#e8b84a" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#d4a017" stop-opacity="0"/>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#b8860b"/>
+      <stop offset="50%" stop-color="#f0d060"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#d4d4d8"/>
     </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="#121216"/>
-  <rect width="100%" height="100%" fill="url(#heroTop)"/>
-  <rect width="100%" height="100%" fill="url(#heroRight)"/>
-  <rect width="100%" height="100%" fill="url(#heroLeft)"/>
-  <rect x="0" y="0" width="${ogW}" height="2" fill="url(#topLine)"/>
-  <rect x="${cardLeft}" y="${cardTop}" width="${cardW}" height="${cardH}" rx="28" fill="#1c1c22" stroke="#ffffff" stroke-opacity="0.1"/>
-  <rect x="${cardLeft + 28}" y="${cardTop + cardH + 28}" width="${cardW - 56}" height="34" rx="17" fill="#d4a017" fill-opacity="0.12" stroke="#d4a017" stroke-opacity="0.35"/>
-  <text x="${ogW / 2}" y="${cardTop + cardH + 51}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="16" font-weight="600" letter-spacing="0.12em" fill="#e8b84a">FOUNDING COHORT · 4 WEEKS</text>
-  <text x="${ogW / 2}" y="${cardTop + cardH + 98}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="34" font-weight="700" fill="#f5f5f5">Strength · Training · Human-In · Reviewed</text>
-  <text x="${ogW / 2}" y="${cardTop + cardH + 138}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="22" fill="#9ca3af">Coach-reviewed Excel blocks for India · sthir.in</text>
+  <rect width="100%" height="100%" fill="#0c0c10"/>
+  <rect width="100%" height="100%" fill="url(#glow)"/>
+  <rect x="0" y="0" width="${ogW}" height="3" fill="url(#gold)" opacity="0.7"/>
+  <text x="${ogW / 2}" y="${markTop + markH + 62}" text-anchor="middle" font-family="system-ui,-apple-system,BlinkMacSystemFont,sans-serif" font-size="72" font-weight="800" font-style="italic" letter-spacing="0.06em" fill="url(#titleGrad)">STHIR</text>
+  <line x1="${ogW / 2 - 120}" y1="${markTop + markH + 82}" x2="${ogW / 2 + 120}" y2="${markTop + markH + 82}" stroke="#e8b84a" stroke-width="2" opacity="0.6"/>
+  <text x="${ogW / 2}" y="${markTop + markH + 118}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="26" font-weight="600" fill="#e8b84a">Strength · Training · Human-In · Reviewed</text>
+  <rect x="${ogW / 2 - 210}" y="${markTop + markH + 140}" width="420" height="44" rx="22" fill="#e8b84a" fill-opacity="0.14" stroke="#e8b84a" stroke-opacity="0.45"/>
+  <text x="${ogW / 2}" y="${markTop + markH + 169}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="18" font-weight="700" letter-spacing="0.08em" fill="#f0d060">FREE 4-WEEK BLOCK · 20 SPOTS</text>
+  <text x="${ogW / 2}" y="${ogH - 36}" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="20" fill="#71717a">Coach-reviewed Excel programs · sthir.in</text>
 </svg>`);
 
-async function writeOgImage(outPath) {
-  await sharp(ogTextSvg)
-    .composite([{ input: logoForOg, left: logoLeft, top: logoTop }])
-    .png()
-    .toFile(outPath);
+async function writeOgImage(outPath, format = 'png') {
+  const pipeline = sharp(ogTextSvg).composite([
+    { input: markForOg, left: ogMarkLeft, top: markTop },
+  ]);
+  if (format === 'jpeg') {
+    await pipeline.jpeg({ quality: 92, mozjpeg: true }).toFile(outPath);
+  } else {
+    await pipeline.png().toFile(outPath);
+  }
 }
 
-await writeOgImage(join(brandDir, 'sthir-og.png'));
+const publicDir = join(__dirname, '../public');
+await writeOgImage(join(brandDir, 'sthir-og.png'), 'png');
+await writeOgImage(join(publicDir, 'og-share.jpg'), 'jpeg');
+await writeOgImage(join(publicDir, 'og-share.png'), 'png');
 
 // App icons from mark — dark background so WhatsApp fallback isn't white
 const iconBg = { r: 18, g: 18, b: 22, alpha: 1 };
@@ -196,10 +194,10 @@ const markBuf = await sharp(join(brandDir, 'sthir-logo-mark.png'))
 const appDir = join(__dirname, '../src/app');
 await sharp(markBuf).toFile(join(appDir, 'icon.png'));
 await sharp(markBuf).toFile(join(appDir, 'apple-icon.png'));
-await sharp(join(brandDir, 'sthir-og.png')).toFile(
+await sharp(join(publicDir, 'og-share.png')).toFile(
   join(appDir, 'opengraph-image.png'),
 );
-await sharp(join(brandDir, 'sthir-og.png')).toFile(
+await sharp(join(publicDir, 'og-share.png')).toFile(
   join(appDir, 'twitter-image.png'),
 );
 

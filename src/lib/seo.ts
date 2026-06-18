@@ -14,6 +14,20 @@ export function getSiteUrl(): string {
     return fromEnv;
   }
 
+  // Stable Vercel production alias (e.g. sthirr.vercel.app) — not per-deploy URL
+  const prodHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.replace(
+    /^https?:\/\//,
+    '',
+  );
+  if (prodHost) {
+    return `https://${prodHost}`;
+  }
+
+  // Explicit *.vercel.app env when set correctly
+  if (fromEnv?.includes('vercel.app')) {
+    return fromEnv;
+  }
+
   const vercelHost = process.env.VERCEL_URL?.replace(/^https?:\/\//, '');
   if (vercelHost) {
     return `https://${vercelHost}`;
@@ -40,10 +54,10 @@ export const siteConfig = {
 } as const;
 
 export const defaultOgImage = {
-  path: '/opengraph-image.png',
+  path: '/og-share.jpg',
   width: 1200,
   height: 630,
-  alt: 'Sthir — Strength · Training · Human-In · Reviewed. Coach-reviewed programs for India.',
+  alt: 'Sthir — Coach-reviewed strength programs for India. Free 4-week founding block.',
 } as const;
 
 export function absoluteUrl(path = ''): string {
@@ -86,7 +100,7 @@ export function pageMetadata({
           width: defaultOgImage.width,
           height: defaultOgImage.height,
           alt: defaultOgImage.alt,
-          type: 'image/png',
+          type: 'image/jpeg',
         },
       ],
     },
