@@ -24,6 +24,16 @@ export const LANDING_IMAGES = {
       alt: 'Heavy squat session',
       label: 'SBD focus',
     },
+    {
+      src: '/images/landing/gym-floor.jpg',
+      alt: 'Loaded bar and plates on the gym floor',
+      label: 'Volume day',
+    },
+    {
+      src: '/images/landing/deadlift.jpg',
+      alt: 'Athlete setting up for a heavy pull',
+      label: 'Pull focus',
+    },
   ],
   steps: [
     {

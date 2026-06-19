@@ -18,8 +18,8 @@ export function TrainingGallery() {
           />
         </Reveal>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2">
-          <Reveal className="sm:col-span-2 lg:row-span-2">
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 lg:grid-rows-2">
+          <Reveal className="sm:col-span-2 lg:col-span-3 lg:row-span-2">
             <figure className="group relative h-full min-h-[220px] overflow-hidden rounded-2xl border border-border/70 sm:min-h-[320px]">
               <Image
                 src={featured.src}
@@ -42,7 +42,11 @@ export function TrainingGallery() {
           </Reveal>
 
           {rest.map((item, i) => (
-            <Reveal key={item.src} delay={60 + i * 50}>
+            <Reveal
+              key={`${item.src}-${item.label}`}
+              delay={60 + i * 50}
+              className={i === rest.length - 1 ? 'lg:col-span-2' : undefined}
+            >
               <figure className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border/70 lg:aspect-auto lg:h-full lg:min-h-[150px]">
                 <Image
                   src={item.src}
