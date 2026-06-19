@@ -30,6 +30,11 @@ export const GOALS = [
     description: 'Strength + hypertrophy hybrid',
   },
   {
+    id: 'office_strength',
+    label: 'Office / 9-to-5 Strength',
+    description: '3-day blocks around your desk job — before work or evening',
+  },
+  {
     id: 'general_strength',
     label: 'General Strength',
     description: 'Balanced SBD progression',
@@ -59,6 +64,7 @@ export const EXPERIENCE_LEVELS = [
 export const GYM_TYPES = [
   { id: 'warehouse', label: 'Warehouse / Strength Gym' },
   { id: 'commercial', label: 'Commercial Gym' },
+  { id: 'office_gym', label: 'Commercial gym (9–5 office schedule)' },
   { id: 'home', label: 'Home Gym' },
 ] as const;
 

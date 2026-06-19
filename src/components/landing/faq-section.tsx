@@ -28,7 +28,12 @@ function getFaqItems() {
     {
       id: 'only-pl',
       q: 'Is this only for powerlifting?',
-      a: 'No. We cover meet prep and federation rules for competitors, but also strength blocks, lift specialization, powerbuilding, and general SBD progress. Pick your goal in the questionnaire.',
+      a: 'No. We cover meet prep and federation rules for competitors, but also office-friendly 3-day strength blocks, lift specialization, powerbuilding, and general SBD progress. Pick your goal in the questionnaire.',
+    },
+    {
+      id: 'office',
+      q: 'I work 9-to-5 — can I still use Sthir?',
+      a: 'Yes. Choose Office / 9-to-5 Strength in the form. You get a 3-day, 45–60 minute block built for before-work or evening gym sessions — no 6-day powerlifting volume required.',
     },
     ...(foundingFree
       ? [

@@ -32,3 +32,7 @@ export function isMeetFocusedGoal(goal: string): boolean {
     goal as GoalId,
   );
 }
+
+export function isOfficeGoal(goal: string): boolean {
+  return goal === 'office_strength';
+}

@@ -20,6 +20,7 @@ import {
   gymTypeLabel,
   trainingStyleLabel,
   isMeetFocusedGoal,
+  isOfficeGoal,
 } from '@/lib/labels';
 import {
   foundingCopy,
@@ -148,6 +149,7 @@ export default function IntakeForm() {
   });
 
   const meetFocused = isMeetFocusedGoal(form.goal);
+  const officeFocused = isOfficeGoal(form.goal);
 
   useEffect(() => {
     track(ANALYTICS_EVENTS.intakeStarted, { goal: form.goal });
@@ -317,7 +319,16 @@ export default function IntakeForm() {
                 <FormSelect
                   value={form.goal}
                   onValueChange={(goal) => {
-                    setForm({ ...form, goal });
+                    setForm({
+                      ...form,
+                      goal,
+                      ...(isOfficeGoal(goal)
+                        ? {
+                            trainingDays: 3,
+                            gymType: 'office_gym',
+                          }
+                        : {}),
+                    });
                     clearFieldError('goal');
                   }}
                   options={GOALS.map((g) => ({ value: g.id, label: g.label }))}
@@ -330,6 +341,16 @@ export default function IntakeForm() {
                     Meet prep goals need your <strong>federation</strong> and{' '}
                     <strong>meet date</strong> — we&apos;ll ask on the next
                     steps so your peak matches IPF/PI or WRPF rules.
+                  </AlertDescription>
+                </Alert>
+              )}
+              {officeFocused && (
+                <Alert>
+                  <AlertDescription>
+                    <strong>Office / 9–5 plan</strong> — we&apos;ll build a{' '}
+                    <strong>3-day block</strong> (~45–60 min) for before work or
+                    evening sessions. Training days default to 3; tell us your
+                    gym type on the next steps.
                   </AlertDescription>
                 </Alert>
               )}

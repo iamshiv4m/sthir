@@ -10,6 +10,7 @@ import {
   Dumbbell,
   Flame,
   Layers,
+  Briefcase,
   Shield,
   Target,
   TrendingUp,
@@ -58,6 +59,7 @@ const GOAL_ICONS: Record<
   improve_bench: Dumbbell,
   improve_deadlift: Zap,
   powerbuilding: Layers,
+  office_strength: Briefcase,
   general_strength: Shield,
   fat_loss_strength: Flame,
 };
@@ -199,8 +201,8 @@ export function LandingPage() {
             title="Pick your training goal"
             description={
               foundingFree
-                ? 'Founding offer is a 4-week coach-reviewed block. Longer meet-prep and standard programs launch soon.'
-                : 'Every program is built around your goal, numbers, and timeline — meet prep, strength, or powerbuilding.'
+                ? 'Founding offer is a 4-week coach-reviewed block — including 3-day plans for office / 9–5 schedules. Longer programs launch soon.'
+                : 'Every program is built around your goal, numbers, and timeline — meet prep, office-friendly strength, or powerbuilding.'
             }
           />
         </Reveal>
