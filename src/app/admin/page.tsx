@@ -7,15 +7,30 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { isFoundingFree, FOUNDING_COHORT_SIZE } from '@/lib/founding';
+import { COACHES, type CoachId } from '@/lib/coaches';
 
 type QueueProgram = {
   id: string;
   templateName: string;
   coachNotes: string;
   draftSummary?: string;
+  reviewerId?: string;
   blocks: unknown[];
+};
+
+type VideoLinks = {
+  squat: string | null;
+  bench: string | null;
+  deadlift: string | null;
 };
 
 type QueueItem = {
@@ -25,6 +40,7 @@ type QueueItem = {
   urgent: boolean;
   answers: { name: string; email: string; goal: string };
   program?: QueueProgram;
+  videos?: VideoLinks;
 };
 
 function programContextText(program?: QueueProgram): string {
@@ -76,10 +92,15 @@ export default function AdminPage() {
   const [selected, setSelected] = useState<QueueItem | null>(null);
   const [notes, setNotes] = useState('');
   const [adminKey, setAdminKey] = useState('');
+  const [activeCoach, setActiveCoach] = useState<CoachId>('founder');
 
   useEffect(() => {
-    const saved = sessionStorage.getItem('sthir_admin_key');
-    if (saved) setAdminKey(saved);
+    const savedKey = sessionStorage.getItem('sthir_admin_key');
+    if (savedKey) setAdminKey(savedKey);
+    const savedCoach = sessionStorage.getItem('sthir_active_coach') as CoachId | null;
+    if (savedCoach && COACHES.some((c) => c.id === savedCoach)) {
+      setActiveCoach(savedCoach);
+    }
   }, []);
 
   useEffect(() => {
@@ -89,6 +110,10 @@ export default function AdminPage() {
       sessionStorage.removeItem('sthir_admin_key');
     }
   }, [adminKey]);
+
+  useEffect(() => {
+    sessionStorage.setItem('sthir_active_coach', activeCoach);
+  }, [activeCoach]);
   const foundingFree = isFoundingFree();
 
   const adminHeaders = useCallback((): HeadersInit => {
@@ -163,7 +188,7 @@ export default function AdminPage() {
       body: JSON.stringify({
         action,
         coachNotes: notes,
-        reviewerId: 'founder',
+        reviewerId: activeCoach,
       }),
     });
     if (!res.ok) {
@@ -220,7 +245,7 @@ export default function AdminPage() {
         12-hour SLA queue — approve before delivery
       </p>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Input
           type="password"
           placeholder="Admin API key"
@@ -229,6 +254,21 @@ export default function AdminPage() {
           value={adminKey}
           onChange={(e) => setAdminKey(e.target.value)}
         />
+        <Select
+          value={activeCoach}
+          onValueChange={(v) => setActiveCoach(v as CoachId)}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Reviewing as…" />
+          </SelectTrigger>
+          <SelectContent>
+            {COACHES.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button variant="outline" onClick={load}>
           Refresh
         </Button>
@@ -383,7 +423,15 @@ export default function AdminPage() {
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-semibold">{item.answers.name}</span>
-                <Badge variant="secondary">{item.status}</Badge>
+                <div className="flex shrink-0 flex-wrap gap-1">
+                  <Badge variant="secondary">{item.status}</Badge>
+                  {item.program?.reviewerId && (
+                    <Badge variant="outline" className="text-xs">
+                      {COACHES.find((c) => c.id === item.program?.reviewerId)
+                        ?.name ?? item.program.reviewerId}
+                    </Badge>
+                  )}
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">
                 {item.answers.email}
@@ -404,6 +452,37 @@ export default function AdminPage() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
+              {selected.videos &&
+                (selected.videos.squat ||
+                  selected.videos.bench ||
+                  selected.videos.deadlift) && (
+                  <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Technique videos
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {(
+                        [
+                          { key: 'squat', label: 'Squat' },
+                          { key: 'bench', label: 'Bench' },
+                          { key: 'deadlift', label: 'Deadlift' },
+                        ] as const
+                      ).map(({ key, label }) =>
+                        selected.videos?.[key] ? (
+                          <a
+                            key={key}
+                            href={selected.videos[key]!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center rounded-md border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+                          >
+                            ▶ {label}
+                          </a>
+                        ) : null,
+                      )}
+                    </div>
+                  </div>
+                )}
               {programContextText(selected.program) && (
                 <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

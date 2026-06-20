@@ -31,6 +31,11 @@ export type IntakeFormValues = {
   injuries: string[];
   sleepQuality: number;
   disclaimerAccepted: boolean;
+  cycleNotes?: string;
+  proteinIntakeG?: number | string;
+  videoSquat?: string;
+  videoBench?: string;
+  videoDeadlift?: string;
 };
 
 const GOAL_IDS = new Set(GOALS.map((g) => g.id));
@@ -148,6 +153,10 @@ export function validateIntakeStep(
       break;
 
     case 5:
+      // Videos step — all fields optional, no required validation
+      break;
+
+    case 6:
       if (!form.disclaimerAccepted) {
         errors.disclaimerAccepted =
           'Please accept the training disclaimer to continue.';
@@ -160,7 +169,7 @@ export function validateIntakeStep(
 
 export function validateAllIntakeSteps(form: IntakeFormValues): FieldErrors {
   const merged: FieldErrors = {};
-  for (let step = 0; step <= 5; step += 1) {
+  for (let step = 0; step <= 6; step += 1) {
     Object.assign(merged, validateIntakeStep(step, form));
   }
   return merged;

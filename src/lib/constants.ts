@@ -86,6 +86,14 @@ export const INJURY_OPTIONS = [
 
 export const SLA_HOURS = 12;
 
+export const SBD_GOALS: readonly string[] = [
+  'first_meet',
+  'increase_total',
+  'improve_squat',
+  'improve_bench',
+  'improve_deadlift',
+] as const;
+
 export const PRICING = {
   waitlist_deposit: 9900, // paise = ₹99
   founding_program: 49900,

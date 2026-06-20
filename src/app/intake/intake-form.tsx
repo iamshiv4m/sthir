@@ -12,7 +12,9 @@ import {
   TRAINING_STYLES,
   INJURY_OPTIONS,
   SLA_HOURS,
+  SBD_GOALS,
 } from '@/lib/constants';
+import { uploadIntakeVideo, type VideoUploadState } from '@/lib/supabase';
 import {
   goalLabel,
   federationLabel,
@@ -54,7 +56,9 @@ const GENDER_OPTIONS = [
   { value: 'other', label: 'Other' },
 ] as const;
 
-const STEPS = ['Goal', 'Profile', 'Lifts', 'Training', 'Health', 'Review'];
+const ALL_STEPS = ['Goal', 'Profile', 'Lifts', 'Training', 'Health', 'Videos', 'Review'];
+const VIDEOS_STEP_IDX = 5;
+const REVIEW_STEP_IDX = 6;
 
 const EQUIPMENT_LABELS: Record<string, string> = {
   barbell: 'Barbell',
@@ -96,18 +100,25 @@ type FormState = {
   equipment: typeof defaultEquipment;
   injuries: string[];
   injuryNotes: string;
+  cycleNotes: string;
   sleepQuality: number;
   recoveryNotes: string;
+  proteinIntakeG: string;
   disclaimerAccepted: boolean;
   referralCode: string;
+  videoSquat: string;
+  videoBench: string;
+  videoDeadlift: string;
 };
+
+type VideoStates = Record<'squat' | 'bench' | 'deadlift', VideoUploadState>;
 
 function inputClass(hasError?: boolean) {
   return cn(hasError && 'border-destructive aria-invalid:border-destructive');
 }
 
 function firstStepWithErrors(form: FormState): number {
-  for (let s = 0; s <= 5; s += 1) {
+  for (let s = 0; s <= REVIEW_STEP_IDX; s += 1) {
     if (Object.keys(validateIntakeStep(s, form)).length > 0) return s;
   }
   return 0;
@@ -120,6 +131,11 @@ export default function IntakeForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [videoStates, setVideoStates] = useState<VideoStates>({
+    squat: 'idle',
+    bench: 'idle',
+    deadlift: 'idle',
+  });
   const [form, setForm] = useState<FormState>({
     goal: params.get('goal') ?? 'first_meet',
     email: '',
@@ -142,14 +158,30 @@ export default function IntakeForm() {
     equipment: defaultEquipment,
     injuries: [] as string[],
     injuryNotes: '',
+    cycleNotes: '',
     sleepQuality: 3,
     recoveryNotes: '',
+    proteinIntakeG: '',
     disclaimerAccepted: false,
     referralCode: params.get('ref') ?? '',
+    videoSquat: '',
+    videoBench: '',
+    videoDeadlift: '',
   });
 
   const meetFocused = isMeetFocusedGoal(form.goal);
   const officeFocused = isOfficeGoal(form.goal);
+  const isSbdGoal = SBD_GOALS.includes(form.goal);
+
+  const visibleSteps = isSbdGoal
+    ? ALL_STEPS
+    : ALL_STEPS.filter((_, i) => i !== VIDEOS_STEP_IDX);
+
+  const visibleStepIndex = isSbdGoal
+    ? step
+    : step >= REVIEW_STEP_IDX
+      ? step - 1
+      : step;
 
   useEffect(() => {
     track(ANALYTICS_EVENTS.intakeStarted, { goal: form.goal });
@@ -158,14 +190,14 @@ export default function IntakeForm() {
   useEffect(() => {
     track(ANALYTICS_EVENTS.intakeStepViewed, {
       step,
-      stepName: STEPS[step],
+      stepName: ALL_STEPS[step],
       goal: form.goal,
     });
   }, [step, form.goal]);
 
   useEffect(() => {
     if (step < 1) return;
-    saveIntakeDraft(step, STEPS[step], form);
+    saveIntakeDraft(step, ALL_STEPS[step], form);
   }, [
     step,
     form.name,
@@ -203,12 +235,35 @@ export default function IntakeForm() {
     setError(firstError(errors) ?? '');
   }
 
+  async function handleVideoUpload(
+    file: File,
+    lift: 'squat' | 'bench' | 'deadlift',
+  ) {
+    setVideoStates((prev) => ({ ...prev, [lift]: 'uploading' }));
+    try {
+      const url = await uploadIntakeVideo(file, lift);
+      const key =
+        lift === 'squat'
+          ? 'videoSquat'
+          : lift === 'bench'
+            ? 'videoBench'
+            : 'videoDeadlift';
+      setForm((f) => ({ ...f, [key]: url }));
+      setVideoStates((prev) => ({ ...prev, [lift]: 'done' }));
+    } catch (e) {
+      setVideoStates((prev) => ({ ...prev, [lift]: 'error' }));
+      setError(
+        e instanceof Error ? e.message : `Failed to upload ${lift} video`,
+      );
+    }
+  }
+
   function goNext() {
     const errors = validateIntakeStep(step, form);
     if (Object.keys(errors).length > 0) {
       track(ANALYTICS_EVENTS.intakeValidationFailed, {
         step,
-        stepName: STEPS[step],
+        stepName: ALL_STEPS[step],
         fields: Object.keys(errors),
       });
       applyStepErrors(errors);
@@ -216,13 +271,27 @@ export default function IntakeForm() {
     }
     track(ANALYTICS_EVENTS.intakeStepCompleted, {
       step,
-      stepName: STEPS[step],
+      stepName: ALL_STEPS[step],
       goal: form.goal,
     });
-    flushIntakeDraft(step + 1, STEPS[step + 1] ?? STEPS[step], form);
+    // Skip Videos step for non-SBD goals
+    const nextStep =
+      !isSbdGoal && step === VIDEOS_STEP_IDX - 1
+        ? REVIEW_STEP_IDX
+        : step + 1;
+    flushIntakeDraft(nextStep, ALL_STEPS[nextStep] ?? ALL_STEPS[step], form);
     setFieldErrors({});
     setError('');
-    setStep((s) => s + 1);
+    setStep(nextStep);
+  }
+
+  function goBack() {
+    setError('');
+    setFieldErrors({});
+    // Skip Videos step backwards for non-SBD goals
+    const prevStep =
+      !isSbdGoal && step === REVIEW_STEP_IDX ? VIDEOS_STEP_IDX - 1 : step - 1;
+    setStep(prevStep);
   }
 
   async function submit() {
@@ -230,7 +299,7 @@ export default function IntakeForm() {
     if (Object.keys(errors).length > 0) {
       track(ANALYTICS_EVENTS.intakeValidationFailed, {
         step,
-        stepName: STEPS[step],
+        stepName: ALL_STEPS[step],
         fields: Object.keys(errors),
         phase: 'submit',
       });
@@ -240,13 +309,18 @@ export default function IntakeForm() {
     }
     setLoading(true);
     setError('');
-    flushIntakeDraft(step, STEPS[step], form);
+    flushIntakeDraft(step, ALL_STEPS[step], form);
     try {
       const res = await fetch(apiUrl('/intake'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          proteinIntakeG: form.proteinIntakeG ? +form.proteinIntakeG : undefined,
+          videoSquat: form.videoSquat || undefined,
+          videoBench: form.videoBench || undefined,
+          videoDeadlift: form.videoDeadlift || undefined,
+          cycleNotes: form.cycleNotes || undefined,
           disclaimerAccepted: true,
           sessionId: getSessionId(),
         }),
@@ -279,7 +353,7 @@ export default function IntakeForm() {
     }
   }
 
-  const progress = ((step + 1) / STEPS.length) * 100;
+  const progress = ((visibleStepIndex + 1) / visibleSteps.length) * 100;
   const foundingFree = isFoundingFree();
   const marketCopy = getMarketCopy();
 
@@ -307,8 +381,8 @@ export default function IntakeForm() {
 
       <div className="mx-auto max-w-2xl px-4 py-8 sm:py-10">
         <p className="text-sm text-muted-foreground">
-          Step {step + 1} of {STEPS.length}:{' '}
-          <span className="font-medium text-foreground">{STEPS[step]}</span>
+          Step {visibleStepIndex + 1} of {visibleSteps.length}:{' '}
+          <span className="font-medium text-foreground">{ALL_STEPS[step]}</span>
         </p>
         <Progress value={progress} className="mt-3 h-2" />
 
@@ -722,10 +796,107 @@ export default function IntakeForm() {
                   }
                 />
               </FormField>
+              {form.gender === 'female' && (
+                <FormField label="Menstrual cycle considerations (optional)">
+                  <Textarea
+                    rows={2}
+                    placeholder="Any patterns in energy, pain, or strength across your cycle that your coach should know?"
+                    value={form.cycleNotes}
+                    onChange={(e) =>
+                      setForm({ ...form, cycleNotes: e.target.value })
+                    }
+                  />
+                </FormField>
+              )}
+              <FormField label="Daily protein intake — optional">
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={500}
+                    placeholder="e.g. 150"
+                    className="max-w-[140px]"
+                    value={form.proteinIntakeG}
+                    onChange={(e) =>
+                      setForm({ ...form, proteinIntakeG: e.target.value })
+                    }
+                  />
+                  <span className="text-sm text-muted-foreground">g / day</span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Helps coach flag under-fuelling relative to your bodyweight.
+                </p>
+              </FormField>
             </>
           )}
 
-          {step === 5 && (
+          {step === VIDEOS_STEP_IDX && (
+            <>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Technique videos — optional</p>
+                <p className="text-xs text-muted-foreground">
+                  Upload a recent set so your coach can check form before
+                  prescribing loads. Accepted: MP4, MOV, WebM · max 200 MB each.
+                </p>
+              </div>
+              {(
+                [
+                  { lift: 'squat', label: 'Squat', field: 'videoSquat' },
+                  { lift: 'bench', label: 'Bench Press', field: 'videoBench' },
+                  { lift: 'deadlift', label: 'Deadlift', field: 'videoDeadlift' },
+                ] as const
+              ).map(({ lift, label, field }) => (
+                <div
+                  key={lift}
+                  className="flex items-center gap-3 rounded-lg border border-border p-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{label}</p>
+                    {form[field] ? (
+                      <p className="mt-0.5 truncate text-xs text-primary">
+                        ✓ Uploaded
+                      </p>
+                    ) : (
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        No video selected
+                      </p>
+                    )}
+                  </div>
+                  <label className="shrink-0">
+                    <input
+                      type="file"
+                      accept="video/mp4,video/quicktime,video/webm"
+                      className="sr-only"
+                      disabled={videoStates[lift] === 'uploading'}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleVideoUpload(file, lift);
+                      }}
+                    />
+                    <span
+                      className={cn(
+                        'inline-flex cursor-pointer items-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium transition hover:bg-muted',
+                        videoStates[lift] === 'uploading' &&
+                          'cursor-not-allowed opacity-60',
+                      )}
+                    >
+                      {videoStates[lift] === 'uploading'
+                        ? 'Uploading…'
+                        : videoStates[lift] === 'done'
+                          ? 'Replace'
+                          : 'Choose file'}
+                    </span>
+                  </label>
+                </div>
+              ))}
+              <p className="text-xs text-muted-foreground">
+                Skip if you don&apos;t have videos — your coach will work from
+                your 1RMs and intake details.
+              </p>
+            </>
+          )}
+
+          {step === REVIEW_STEP_IDX && (
             <>
               <Card>
                 <CardHeader>
@@ -771,6 +942,23 @@ export default function IntakeForm() {
                   {form.injuries.length > 0 && (
                     <p>
                       <strong>Injuries:</strong> {form.injuries.join(', ')}
+                    </p>
+                  )}
+                  {form.proteinIntakeG && (
+                    <p>
+                      <strong>Protein:</strong> {form.proteinIntakeG}g/day
+                    </p>
+                  )}
+                  {(form.videoSquat || form.videoBench || form.videoDeadlift) && (
+                    <p>
+                      <strong>Videos:</strong>{' '}
+                      {[
+                        form.videoSquat && 'Squat',
+                        form.videoBench && 'Bench',
+                        form.videoDeadlift && 'Deadlift',
+                      ]
+                        .filter(Boolean)
+                        .join(', ')}
                     </p>
                   )}
                   <p className="pt-2 font-medium text-primary">
@@ -838,15 +1026,11 @@ export default function IntakeForm() {
             variant="outline"
             disabled={step === 0}
             className="min-h-11 px-5"
-            onClick={() => {
-              setError('');
-              setFieldErrors({});
-              setStep((s) => s - 1);
-            }}
+            onClick={goBack}
           >
             Back
           </Button>
-          {step < STEPS.length - 1 ? (
+          {step < REVIEW_STEP_IDX ? (
             <Button type="button" className="min-h-11 px-6" onClick={goNext}>
               Next
             </Button>
