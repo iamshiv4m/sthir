@@ -460,7 +460,7 @@ export default function AdminPage() {
                     <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Technique videos
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {(
                         [
                           { key: 'squat', label: 'Squat' },
@@ -469,15 +469,16 @@ export default function AdminPage() {
                         ] as const
                       ).map(({ key, label }) =>
                         selected.videos?.[key] ? (
-                          <a
-                            key={key}
-                            href={selected.videos[key]!}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center rounded-md border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
-                          >
-                            ▶ {label}
-                          </a>
+                          <div key={key} className="flex flex-col gap-1">
+                            <p className="text-xs font-medium text-muted-foreground">{label}</p>
+                            <video
+                              src={selected.videos[key]!}
+                              controls
+                              preload="metadata"
+                              className="w-full rounded-md border border-border/60 bg-black"
+                              style={{ maxHeight: '180px' }}
+                            />
+                          </div>
                         ) : null,
                       )}
                     </div>
