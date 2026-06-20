@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiUrl } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -93,6 +93,8 @@ export default function AdminPage() {
   const [notes, setNotes] = useState('');
   const [adminKey, setAdminKey] = useState('');
   const [activeCoach, setActiveCoach] = useState<CoachId>('founder');
+  const [videoModal, setVideoModal] = useState<{ url: string; label: string } | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const savedKey = sessionStorage.getItem('sthir_admin_key');
@@ -460,7 +462,7 @@ export default function AdminPage() {
                     <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Technique videos
                     </p>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="flex flex-wrap gap-2">
                       {(
                         [
                           { key: 'squat', label: 'Squat' },
@@ -469,16 +471,13 @@ export default function AdminPage() {
                         ] as const
                       ).map(({ key, label }) =>
                         selected.videos?.[key] ? (
-                          <div key={key} className="flex flex-col gap-1">
-                            <p className="text-xs font-medium text-muted-foreground">{label}</p>
-                            <video
-                              src={selected.videos[key]!}
-                              controls
-                              preload="metadata"
-                              className="w-full rounded-md border border-border/60 bg-black"
-                              style={{ maxHeight: '180px' }}
-                            />
-                          </div>
+                          <button
+                            key={key}
+                            onClick={() => setVideoModal({ url: selected.videos![key]!, label })}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/15 transition-colors"
+                          >
+                            <span>▶</span> {label}
+                          </button>
                         ) : null,
                       )}
                     </div>
@@ -551,6 +550,46 @@ export default function AdminPage() {
           </Card>
         )}
       </div>
+
+      {/* Video Modal */}
+      {videoModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => {
+            videoRef.current?.pause();
+            setVideoModal(null);
+          }}
+        >
+          <div
+            className="relative w-full max-w-3xl rounded-xl border border-border bg-background shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <p className="text-sm font-semibold">{videoModal.label} — Technique Video</p>
+              <button
+                onClick={() => {
+                  videoRef.current?.pause();
+                  setVideoModal(null);
+                }}
+                className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                ✕ Close
+              </button>
+            </div>
+            <div className="p-4">
+              <video
+                ref={videoRef}
+                src={videoModal.url}
+                controls
+                autoPlay
+                preload="auto"
+                className="w-full rounded-lg bg-black"
+                style={{ maxHeight: '70vh' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
