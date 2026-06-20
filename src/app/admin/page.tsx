@@ -10,19 +10,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { isFoundingFree, FOUNDING_COHORT_SIZE } from '@/lib/founding';
 
+type QueueProgram = {
+  id: string;
+  templateName: string;
+  coachNotes: string;
+  draftSummary?: string;
+  blocks: unknown[];
+};
+
 type QueueItem = {
   id: string;
   status: string;
   slaHoursRemaining: number;
   urgent: boolean;
   answers: { name: string; email: string; goal: string };
-  program?: {
-    id: string;
-    templateName: string;
-    coachNotes: string;
-    blocks: unknown[];
-  };
+  program?: QueueProgram;
 };
+
+function programContextText(program?: QueueProgram): string {
+  if (!program) return '';
+  if (program.draftSummary) return program.draftSummary;
+  return program.coachNotes ?? '';
+}
+
+function coachNotesForEditor(program?: QueueProgram): string {
+  if (!program) return '';
+  if (program.draftSummary != null) return program.coachNotes ?? '';
+  return '';
+}
 
 type FunnelSummary = {
   totals: {
@@ -142,7 +157,7 @@ export default function AdminPage() {
       'Content-Type': 'application/json',
       ...adminHeaders(),
     };
-    await fetch(apiUrl(`/admin/programs/${intakeId}`), {
+    const res = await fetch(apiUrl(`/admin/programs/${intakeId}`), {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -151,6 +166,16 @@ export default function AdminPage() {
         reviewerId: 'founder',
       }),
     });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as {
+        message?: string | string[];
+      } | null;
+      const message = Array.isArray(data?.message)
+        ? data.message.join(', ')
+        : data?.message;
+      alert(message ?? 'Action failed — check admin key and intake status.');
+      return;
+    }
     setSelected(null);
     setNotes('');
     load();
@@ -346,7 +371,7 @@ export default function AdminPage() {
               type="button"
               onClick={() => {
                 setSelected(item);
-                setNotes(item.program?.coachNotes ?? '');
+                setNotes(coachNotesForEditor(item.program));
               }}
               className={cn(
                 'w-full rounded-xl border p-4 text-left transition',
@@ -379,32 +404,60 @@ export default function AdminPage() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Textarea
-                rows={8}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
+              {programContextText(selected.program) && (
+                <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Auto context (read-only)
+                  </p>
+                  <pre className="mt-2 whitespace-pre-wrap font-sans text-sm text-foreground/90">
+                    {programContextText(selected.program)}
+                  </pre>
+                </div>
+              )}
+              <div>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Coach notes for athlete
+                </p>
+                <Textarea
+                  rows={6}
+                  placeholder="Write notes for the athlete — only this goes into CSV/PDF export."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
               <p className="text-xs text-muted-foreground">
                 {selected.program?.blocks.length ?? 0} program rows generated
               </p>
+              {selected.status === 'pending_review' && (
+                <p className="text-xs text-muted-foreground">
+                  Step 1: Approve after reviewing notes → Step 2: Deliver CSV/PDF
+                </p>
+              )}
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="secondary"
+                  disabled={!['paid', 'pending_review'].includes(selected.status)}
                   onClick={() => reviewAction(selected.id, 'approve')}
                 >
-                  Approve
+                  {selected.status === 'approved' ? 'Approved' : 'Approve'}
                 </Button>
-                <Button onClick={() => reviewAction(selected.id, 'deliver')}>
+                <Button
+                  disabled={selected.status !== 'approved'}
+                  onClick={() => reviewAction(selected.id, 'deliver')}
+                >
                   Deliver (CSV/PDF)
                 </Button>
                 <Button
                   variant="destructive"
+                  disabled={['delivered', 'rejected', 'refunded'].includes(
+                    selected.status,
+                  )}
                   onClick={() => reviewAction(selected.id, 'reject')}
                 >
                   Reject
                 </Button>
               </div>
-              {selected.program?.id && (
+              {selected.status === 'delivered' && selected.program?.id && (
                 <Button
                   type="button"
                   variant="link"
