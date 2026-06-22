@@ -33,12 +33,41 @@ type VideoLinks = {
   deadlift: string | null;
 };
 
+type IntakeAnswers = {
+  name: string;
+  email: string;
+  phone?: string;
+  goal: string;
+  age?: number;
+  gender?: string;
+  heightCm?: number;
+  bodyweightKg?: number;
+  weightClass?: string;
+  squat1rm?: number;
+  bench1rm?: number;
+  deadlift1rm?: number;
+  experience?: string;
+  federation?: string;
+  trainingDays?: number;
+  trainingStyle?: string;
+  meetDate?: string;
+  gymType?: string;
+  equipment?: Record<string, boolean>;
+  injuries?: string[];
+  injuryNotes?: string;
+  sleepQuality?: number;
+  recoveryNotes?: string;
+  cycleNotes?: string;
+  proteinIntakeG?: number;
+};
+
 type QueueItem = {
   id: string;
   status: string;
   slaHoursRemaining: number;
   urgent: boolean;
-  answers: { name: string; email: string; goal: string };
+  createdAt?: string;
+  answers: IntakeAnswers;
   program?: QueueProgram;
   videos?: VideoLinks;
 };
@@ -454,6 +483,103 @@ export default function AdminPage() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* ── Athlete Details ── */}
+              <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Athlete details</p>
+
+                {/* Personal */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
+                  {[
+                    { label: 'Email', value: selected.answers.email },
+                    { label: 'Phone', value: selected.answers.phone },
+                    { label: 'Age', value: selected.answers.age },
+                    { label: 'Gender', value: selected.answers.gender },
+                    { label: 'Height', value: selected.answers.heightCm ? `${selected.answers.heightCm} cm` : undefined },
+                    { label: 'Bodyweight', value: selected.answers.bodyweightKg ? `${selected.answers.bodyweightKg} kg` : undefined },
+                    { label: 'Weight Class', value: selected.answers.weightClass || '—' },
+                  ].map(({ label, value }) =>
+                    value != null ? (
+                      <div key={label}>
+                        <span className="text-xs text-muted-foreground">{label}: </span>
+                        <span className="font-medium">{String(value)}</span>
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+
+                {/* Lifts */}
+                {(selected.answers.squat1rm || selected.answers.bench1rm || selected.answers.deadlift1rm) && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">1RMs</p>
+                    <div className="flex flex-wrap gap-3 text-sm font-medium">
+                      {selected.answers.squat1rm && <span>S: {selected.answers.squat1rm} kg</span>}
+                      {selected.answers.bench1rm && <span>B: {selected.answers.bench1rm} kg</span>}
+                      {selected.answers.deadlift1rm && <span>D: {selected.answers.deadlift1rm} kg</span>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Training */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
+                  {[
+                    { label: 'Experience', value: selected.answers.experience },
+                    { label: 'Federation', value: selected.answers.federation },
+                    { label: 'Meet Date', value: selected.answers.meetDate },
+                    { label: 'Training Days', value: selected.answers.trainingDays },
+                    { label: 'Style', value: selected.answers.trainingStyle },
+                    { label: 'Gym Type', value: selected.answers.gymType },
+                  ].map(({ label, value }) =>
+                    value != null ? (
+                      <div key={label}>
+                        <span className="text-xs text-muted-foreground">{label}: </span>
+                        <span className="font-medium">{String(value)}</span>
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+
+                {/* Equipment */}
+                {selected.answers.equipment && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Equipment</p>
+                    <div className="flex flex-wrap gap-1">
+                      {Object.entries(selected.answers.equipment)
+                        .filter(([, v]) => v)
+                        .map(([k]) => (
+                          <span key={k} className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary capitalize">
+                            {k.replace(/([A-Z])/g, ' $1')}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Health */}
+                {(selected.answers.injuries?.length || selected.answers.injuryNotes || selected.answers.sleepQuality != null || selected.answers.recoveryNotes || selected.answers.cycleNotes || selected.answers.proteinIntakeG) && (
+                  <div className="space-y-1 text-sm">
+                    <p className="text-xs text-muted-foreground">Health & Recovery</p>
+                    {selected.answers.injuries?.length ? (
+                      <div><span className="text-xs text-muted-foreground">Injuries: </span><span>{selected.answers.injuries.join(', ')}</span></div>
+                    ) : null}
+                    {selected.answers.injuryNotes ? (
+                      <div><span className="text-xs text-muted-foreground">Injury notes: </span><span>{selected.answers.injuryNotes}</span></div>
+                    ) : null}
+                    {selected.answers.sleepQuality != null ? (
+                      <div><span className="text-xs text-muted-foreground">Sleep quality: </span><span>{selected.answers.sleepQuality}/5</span></div>
+                    ) : null}
+                    {selected.answers.recoveryNotes ? (
+                      <div><span className="text-xs text-muted-foreground">Recovery notes: </span><span>{selected.answers.recoveryNotes}</span></div>
+                    ) : null}
+                    {selected.answers.cycleNotes ? (
+                      <div><span className="text-xs text-muted-foreground">Cycle notes: </span><span>{selected.answers.cycleNotes}</span></div>
+                    ) : null}
+                    {selected.answers.proteinIntakeG ? (
+                      <div><span className="text-xs text-muted-foreground">Protein intake: </span><span>{selected.answers.proteinIntakeG} g/day</span></div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+
               {selected.videos &&
                 (selected.videos.squat ||
                   selected.videos.bench ||
